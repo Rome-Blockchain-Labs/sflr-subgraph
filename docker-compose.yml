@@ -1,0 +1,47 @@
+version: '3'
+services:
+  ipfs:
+    image: ipfs/go-ipfs:v0.9.1
+    ports:
+      - '5001:5001'
+    volumes:
+      - ipfs_staging:/export
+      - ipfs_data:/data/ipfs
+  postgres:
+    image: postgres:12
+    ports:
+      - '5432:5432'
+    environment:
+      POSTGRES_PASSWORD: letmein
+      POSTGRES_USER: postgres
+      POSTGRES_DB: graph-node
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+  graph-node:
+    image: graphprotocol/graph-node:v0.25.0
+    ports:
+      - '8000:8000'
+      - '8001:8001'
+      - '8020:8020'
+      - '8030:8030'
+    depends_on:
+      - ipfs
+      - postgres
+    environment:
+      postgres_host: postgres
+      postgres_user: postgres
+      postgres_pass: letmein
+      postgres_db: graph-node
+      ipfs: 'http://ipfs:5001'
+      xethereum: 'flare:https://flare-api.flare.network/ext/C/rpc'
+      ethereum: 'flare:https://flare.solidifi.app/ext/C/rpc'
+      sethereum: 'flare:wss://flare-api.flare.network/ext/bc/C/ws'
+      zethereum: 'flare:ws://192.168.72.221:19650/ext/bc/C/ws'
+      GRAPH_LOG: info
+      ETHEREUM_REORG_THRESHOLD: 0
+      ETHEREUM_ANCESTOR_COUNT: 0
+      GRAPH_ETH_CALL_BY_NUMBER: true
+volumes:
+  ipfs_staging:
+  ipfs_data:
+  pgdata:

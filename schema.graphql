@@ -1,0 +1,5 @@
+type ExchangeRate @entity {
+  id: ID!
+  rate: BigInt!
+  timestamp: BigInt!
+}
