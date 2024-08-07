@@ -1,6 +1,6 @@
 specVersion: 0.0.4
 description: Subgraph to track SFLR prices on Flare Network
-repository: https://github.com/your-repo/sflr-subgraph
+repository: https://github.com/Rome-Blockchain-Labs/sflr-subgraph.git
 schema:
   file: ./schema.graphql
 dataSources:
