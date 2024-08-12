@@ -56,7 +56,7 @@ services:
       - SUBGRAPH_NAME=sflr-subgraph
       - NODE_URL=http://127.0.0.1:18000/
       - IPFS_URL=http://127.0.0.1:15001
-      - VERSION=v0.0.4
+      - VERSION=0.0.4
     depends_on:
       - graph-node
 
