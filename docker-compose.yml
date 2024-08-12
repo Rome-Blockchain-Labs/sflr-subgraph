@@ -1,29 +1,35 @@
-version: '3'
 services:
   ipfs:
-    image: ipfs/go-ipfs:v0.9.1
+    image: ipfs/kubo:latest
     ports:
-      - '5001:5001'
+      - '15001:5001'
     volumes:
       - ipfs_staging:/export
       - ipfs_data:/data/ipfs
+    environment:
+      IPFS_PROFILE: "server"
+
   postgres:
-    image: postgres:12
+    image: postgres:latest
     ports:
-      - '5432:5432'
+      - '15432:5432'
     environment:
       POSTGRES_PASSWORD: letmein
       POSTGRES_USER: postgres
       POSTGRES_DB: graph-node
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
+    command: ["postgres", "-c", "shared_preload_libraries=pg_stat_statements"]
     volumes:
       - pgdata:/var/lib/postgresql/data
+
   graph-node:
-    image: graphprotocol/graph-node:v0.25.0
+    image: graphprotocol/graph-node:latest
     ports:
-      - '8000:8000'
-      - '8001:8001'
-      - '8020:8020'
-      - '8030:8030'
+      - '18000:8000'
+      - '18001:8001'
+      - '18020:8020'
+      - '18030:8030'
+      - '18040:8040'
     depends_on:
       - ipfs
       - postgres
@@ -41,7 +47,22 @@ services:
       ETHEREUM_REORG_THRESHOLD: 0
       ETHEREUM_ANCESTOR_COUNT: 0
       GRAPH_ETH_CALL_BY_NUMBER: true
+
+  deploy-subgraph:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      - SUBGRAPH_NAME=sflr-subgraph
+      - NODE_URL=http://127.0.0.1:18000/
+      - IPFS_URL=http://127.0.0.1:15001
+      - VERSION=v0.0.4
+    depends_on:
+      - graph-node
+
 volumes:
   ipfs_staging:
   ipfs_data:
   pgdata:
+
+name: sflr-subgraph
