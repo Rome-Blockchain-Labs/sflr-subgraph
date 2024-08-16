@@ -3,3 +3,4 @@ generated/
 venv/
 node_modules/
 pw
+exchange_rate_plot.png

@@ -1,5 +1,5 @@
 services:
-  ipfs:
+  ipfs-sflr:
     image: ipfs/kubo:latest
     restart: always
     ports:
@@ -9,8 +9,12 @@ services:
       - ipfs_data:/data/ipfs
     environment:
       IPFS_PROFILE: "server"
+    networks:
+      sflr_network:
+        aliases:
+          - ipfs
 
-  postgres:
+  postgres-sflr:
     image: postgres:latest
     restart: always
     ports:
@@ -23,8 +27,10 @@ services:
     command: ["postgres", "-c", "shared_preload_libraries=pg_stat_statements"]
     volumes:
       - pgdata:/var/lib/postgresql/data
+    networks:
+      - sflr_network
 
-  graph-node:
+  graph-node-sflr:
     image: graphprotocol/graph-node:latest
     restart: always
     ports:
@@ -34,35 +40,41 @@ services:
       - '18030:8030'
       - '18040:8040'
     depends_on:
-      - ipfs
-      - postgres
+      - ipfs-sflr
+      - postgres-sflr
     environment:
-      postgres_host: postgres
+      postgres_host: postgres-sflr
       postgres_user: postgres
       postgres_pass: letmein
       postgres_db: graph-node
-      ipfs: 'http://ipfs:5001'
-      xethereum: 'flare:https://flare-api.flare.network/ext/C/rpc'
-      ethereum: 'flare:https://flare.solidifi.app/ext/C/rpc'
-      sethereum: 'flare:wss://flare-api.flare.network/ext/bc/C/ws'
-      zethereum: 'flare:ws://192.168.72.221:19650/ext/bc/C/ws'
+      ipfs: 'http://ipfs-sflr:5001'
+      ethereum: 'flare:https://flare-api.flare.network/ext/C/rpc,https://flare.solidifi.app/ext/C/rpc'
       GRAPH_LOG: info
       ETHEREUM_REORG_THRESHOLD: 0
       ETHEREUM_ANCESTOR_COUNT: 0
       GRAPH_ETH_CALL_BY_NUMBER: true
+    networks:
+      - sflr_network
 
-  deploy-subgraph:
+  deploy-subgraph-sflr:
     build:
       context: .
       dockerfile: Dockerfile
     restart: always
     environment:
       - SUBGRAPH_NAME=sflr-subgraph
-      - NODE_URL=http://127.0.0.1:18000/
-      - IPFS_URL=http://127.0.0.1:15001
+      - NODE_URL=http://graph-node-sflr:8020/
+      - IPFS_URL=http://ipfs-sflr:5001
       - VERSION=0.0.4
     depends_on:
-      - graph-node
+      - graph-node-sflr
+      - ipfs-sflr
+    networks:
+      - sflr_network
+
+networks:
+  sflr_network:
+    name: sflr_network
 
 volumes:
   ipfs_staging:

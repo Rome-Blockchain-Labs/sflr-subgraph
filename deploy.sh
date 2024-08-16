@@ -1,17 +1,18 @@
 #!/bin/bash
 
-# Set default values for variables
+# Use environment variables directly
 SUBGRAPH_NAME="${SUBGRAPH_NAME:-sflr-subgraph}"
-NODE_URL="${NODE_URL:-http://127.0.0.1:18020/}"
-IPFS_URL="${IPFS_URL:-http://127.0.0.1:15001}"
+NODE_URL="${NODE_URL:-http://graph-node-sflr:8020/}"
+IPFS_URL="${IPFS_URL:-http://ipfs-sflr:5001}"
 VERSION="${VERSION:-0.0.4}"
 
 echo "Deploying subgraph: $SUBGRAPH_NAME with version: $VERSION"
 
 # Wait for Graph Node to be ready
 echo 'Waiting for graph-node to be ready...'
-while ! curl -s "$NODE_URL" > /dev/null; do
-    sleep 1
+until curl -s "$NODE_URL" > /dev/null; do
+    echo "Graph node is not ready, waiting..."
+    sleep 5
 done
 echo 'Graph node is ready, deploying subgraph...'
 
