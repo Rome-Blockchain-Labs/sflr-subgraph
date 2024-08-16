@@ -71,6 +71,8 @@ services:
       - ipfs-sflr
     networks:
       - sflr_network
+    volumes:
+    - ./deploy.sh:/usr/src/app/deploy.sh
 
 networks:
   sflr_network:
