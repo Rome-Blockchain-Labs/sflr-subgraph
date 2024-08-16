@@ -2,5 +2,6 @@ build/
 generated/
 venv/
 node_modules/
+src/types/
 pw
 exchange_rate_plot.png
