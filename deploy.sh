@@ -22,14 +22,14 @@ if [ ! -d "node_modules" ]; then
 fi
 
 # Generate and build the subgraph
-graph codegen
-graph build
+npx graph codegen
+npx graph build
 
 # Create the subgraph if it doesn't exist
-graph create --node "$NODE_URL" "$SUBGRAPH_NAME" || true
+npx graph create --node "$NODE_URL" "$SUBGRAPH_NAME" || true
 
 # Deploy the subgraph
-graph deploy --node "$NODE_URL" --ipfs "$IPFS_URL" "$SUBGRAPH_NAME" subgraph.yaml --version-label "$VERSION"
+npx graph deploy --node "$NODE_URL" --ipfs "$IPFS_URL" "$SUBGRAPH_NAME" subgraph.yaml --version-label "$VERSION"
 
 # Allow time for deployment
 sleep 2
