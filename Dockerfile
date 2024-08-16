@@ -7,6 +7,9 @@ WORKDIR /usr/src/app
 # Initialize npm and create a default package.json
 RUN npm init -y
 
+# Install
+RUN npm install
+
 # Install any global dependencies like the Graph CLI
 RUN npm install -g @graphprotocol/graph-cli
 

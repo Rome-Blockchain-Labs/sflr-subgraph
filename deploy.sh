@@ -36,7 +36,4 @@ npx graph deploy --node "$NODE_URL" --ipfs "$IPFS_URL" "$SUBGRAPH_NAME" subgraph
 sleep 2
 
 # Check the deployment status with a correctly formatted JSON payload
-echo 'Deployment attempt completed. Checking status...'
-curl -X POST "${NODE_URL}graphql" \
-    -H 'Content-Type: application/json' \
-    -d '{"query": "{ indexingStatuses { subgraph synced health errors { message } } }"}'
+echo 'Deployment completed. Wait for sync to complete to use. Use prometheus metrics to inspect at http://graph-node-sflr:8040/metrics...'
