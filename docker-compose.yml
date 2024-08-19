@@ -72,7 +72,7 @@ services:
     networks:
       - sflr_network
     volumes:
-    - ./deploy.sh:/usr/src/app/deploy.sh
+    - .:/usr/src/app
 
 networks:
   sflr_network:
