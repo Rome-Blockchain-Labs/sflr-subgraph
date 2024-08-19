@@ -2,7 +2,7 @@
   "name": "sflr-subgraph",
   "license": "MIT",
   "scripts": {
-    "codegen": "graph codegen --output-dir src/types/",
+    "codegen": "graph codegen",
     "build": "graph build",
     "create-local": "graph create --node http://localhost:18020/ sflr-subgraph",
     "remove-local": "graph remove --node http://localhost:18020/ sflr-subgraph",
