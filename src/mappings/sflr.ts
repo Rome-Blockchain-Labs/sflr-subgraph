@@ -1,6 +1,6 @@
 import { BigInt } from "@graphprotocol/graph-ts"
 import { AccrueRewards } from "../../generated/SFLRContract/SFLR"
-import { ExchangeRate } from "../../generated/schema"
+import { ExchangeRate, AccrueReward } from "../../generated/schema"
 import { SFLR } from "../../generated/SFLRContract/SFLR"
 
 export function handleAccrueRewards(event: AccrueRewards): void {
@@ -12,4 +12,10 @@ export function handleAccrueRewards(event: AccrueRewards): void {
   exchangeRate.rate = flrAmount
   exchangeRate.timestamp = event.block.timestamp
   exchangeRate.save()
+
+  let accrueReward = new AccrueReward(event.transaction.hash.toHex())
+  accrueReward.timestamp = event.block.timestamp
+  accrueReward.userRewardAmount = event.params.userRewardAmount
+  accrueReward.protocolRewardAmount = event.params.protocolRewardAmount
+  accrueReward.save()
 }

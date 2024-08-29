@@ -3,3 +3,10 @@ type ExchangeRate @entity {
   rate: BigInt!
   timestamp: BigInt!
 }
+
+type AccrueReward @entity {
+  id: ID!
+  timestamp: BigInt!
+  userRewardAmount: BigInt!
+  protocolRewardAmount: BigInt!
+}
