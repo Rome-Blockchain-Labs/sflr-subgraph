@@ -1,0 +1,84 @@
+services:
+  ipfs-sflr:
+    image: ipfs/kubo:latest
+    restart: always
+    ports:
+      - '29001:5001'
+    volumes:
+      - ipfs_staging_dev:/export
+      - ipfs_data_dev:/data/ipfs
+    environment:
+      IPFS_PROFILE: "server"
+    networks:
+      - sflr_network_dev
+
+  postgres-sflr:
+    image: postgres:latest
+    restart: always
+    ports:
+      - '29432:5432'
+    environment:
+      POSTGRES_PASSWORD: letmein
+      POSTGRES_USER: postgres
+      POSTGRES_DB: graph-node
+      POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
+    command: ["postgres", "-c", "shared_preload_libraries=pg_stat_statements"]
+    volumes:
+      - pgdata_dev:/var/lib/postgresql/data
+    networks:
+      - sflr_network_dev
+
+  graph-node-sflr:
+    image: graphprotocol/graph-node:latest
+    restart: always
+    ports:
+      - '27000:8000'
+      - '27001:8001'
+      - '27020:8020'
+      - '27030:8030'
+      - '27040:8040'
+    depends_on:
+      - ipfs-sflr
+      - postgres-sflr
+    environment:
+      postgres_host: postgres-sflr
+      postgres_user: postgres
+      postgres_pass: letmein
+      postgres_db: graph-node
+      ipfs: 'http://ipfs-sflr:5001'
+      ethereum: 'flare:https://flare.solidifi.app/ext/C/rpc'
+      GRAPH_LOG: info
+      ETHEREUM_REORG_THRESHOLD: 0
+      ETHEREUM_ANCESTOR_COUNT: 0
+      GRAPH_ETH_CALL_BY_NUMBER: true
+    networks:
+      - sflr_network_dev
+
+  deploy-subgraph-sflr:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: no
+    environment:
+      - SUBGRAPH_NAME=sflr-subgraph
+      - NODE_URL=http://graph-node-sflr:8020/
+      - IPFS_URL=http://ipfs-sflr:5001
+      - VERSION=0.0.4
+    depends_on:
+      - graph-node-sflr
+      - ipfs-sflr
+    networks:
+      - sflr_network_dev
+    volumes:
+    - .:/usr/src/app
+
+networks:
+  sflr_network_dev:
+    name: sflr_network_dev
+
+volumes:
+  ipfs_staging_dev:
+  ipfs_data_dev:
+  pgdata_dev:
+
+name: sflr-subgraph-dev
