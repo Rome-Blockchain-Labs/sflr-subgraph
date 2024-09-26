@@ -10,3 +10,37 @@ type AccrueReward @entity {
   userRewardAmount: BigInt!
   protocolRewardAmount: BigInt!
 }
+
+type DailySnapshot @entity {
+  id: ID!
+  date: BigInt!
+  totalStaked: BigInt!
+  totalUnstaked: BigInt!
+  exchangeRate: BigInt!
+  totalRewards: BigInt!
+  stakerCount: BigInt!
+}
+
+type TotalStats @entity {
+  id: ID!
+  totalPooledFlr: BigInt!
+  totalShares: BigInt!
+  stakerCount: BigInt!
+  cooldownPeriod: BigInt!
+  redeemPeriod: BigInt!
+  totalRewardsDistributed: BigInt!
+}
+
+type UserPosition @entity {
+  id: ID!
+  user: Bytes!
+  shares: BigInt!
+  sharesInCustody: BigInt!
+}
+
+type UnstakeRequest @entity {
+  id: ID!
+  user: Bytes!
+  startedAt: BigInt!
+  shareAmount: BigInt!
+}

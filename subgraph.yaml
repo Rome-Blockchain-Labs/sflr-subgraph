@@ -1,4 +1,4 @@
-specVersion: 0.0.4
+specVersion: 1.2.0
 description: Subgraph to track SFLR prices on Flare Network
 repository: https://github.com/Rome-Blockchain-Labs/sflr-subgraph.git
 schema:
@@ -13,14 +13,33 @@ dataSources:
       startBlock: 23664754
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.6
+      apiVersion: 0.0.9
       language: wasm/assemblyscript
       entities:
-        - Price
+        - ExchangeRate
+        - AccrueReward
+        - DailySnapshot
+        - TotalStats
+        - UserPosition
+        - UnstakeRequest
       abis:
         - name: SFLR
           file: ./abis/SFLR.json
       eventHandlers:
         - event: AccrueRewards(uint256,uint256)
-          handler: handleAccrueRewards     
+          handler: handleAccrueRewards
+        - event: Submitted(indexed address,uint256,uint256)
+          handler: handleSubmitted
+        - event: UnlockRequested(indexed address,uint256)
+          handler: handleUnlockRequested
+        - event: Redeem(indexed address,uint256,uint256,uint256)
+          handler: handleRedeem
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer
+        - event: CooldownPeriodUpdated(uint256,uint256)
+          handler: handleCooldownPeriodUpdated
+        - event: RedeemPeriodUpdated(uint256,uint256)
+          handler: handleRedeemPeriodUpdated
+        - event: ExchangeRateUpdate(uint256)
+          handler: handleExchangeRateUpdate
       file: ./src/mappings/sflr.ts
