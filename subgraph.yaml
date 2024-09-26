@@ -16,11 +16,12 @@ dataSources:
       apiVersion: 0.0.6
       language: wasm/assemblyscript
       entities:
-        - Price
+        - ExchangeRate
+        - AccrueReward
       abis:
         - name: SFLR
           file: ./abis/SFLR.json
       eventHandlers:
         - event: AccrueRewards(uint256,uint256)
-          handler: handleAccrueRewards     
+          handler: handleAccrueRewards
       file: ./src/mappings/sflr.ts

@@ -10,7 +10,7 @@ services:
     environment:
       IPFS_PROFILE: "server"
     networks:
-      sflr_network_dev:
+      sflr_network:
         aliases:
           - ipfs
 
@@ -28,7 +28,7 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     networks:
-      - sflr_network_dev
+      - sflr_network
 
   graph-node-sflr:
     image: graphprotocol/graph-node:latest
@@ -48,13 +48,14 @@ services:
       postgres_pass: letmein
       postgres_db: graph-node
       ipfs: 'http://ipfs-sflr:5001'
-      ethereum: 'flare:https://flare.solidifi.app/ext/C/rpc'
+      # ethereum: 'flare:https://flare.solidifi.app/ext/C/rpc'
+      ethereum: 'flare:https://flare.rpc.romenet.io/ext/C/rpc'
       GRAPH_LOG: info
       ETHEREUM_REORG_THRESHOLD: 0
       ETHEREUM_ANCESTOR_COUNT: 0
       GRAPH_ETH_CALL_BY_NUMBER: true
     networks:
-      - sflr_network_dev
+      - sflr_network
 
   deploy-subgraph-sflr:
     build:
@@ -70,17 +71,17 @@ services:
       - graph-node-sflr
       - ipfs-sflr
     networks:
-      - sflr_network_dev
+      - sflr_network
     volumes:
     - .:/usr/src/app
 
 networks:
   sflr_network:
-    name: sflr_network_dev
+    name: sflr_network
 
 volumes:
   ipfs_staging:
   ipfs_data:
   pgdata:
 
-name: sflr-subgraph-dev
+name: sflr-subgraph

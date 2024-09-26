@@ -4,7 +4,7 @@ import matplotlib.dates as mdates
 from datetime import datetime, timedelta
 
 # GraphQL endpoint
-url = 'http://127.0.0.1:18000/subgraphs/name/sflr-subgraph'
+url = 'http://127.0.0.1:27000/subgraphs/name/sflr-subgraph'
 
 # GraphQL query
 query = """
