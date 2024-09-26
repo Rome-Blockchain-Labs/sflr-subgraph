@@ -47,7 +47,7 @@ services:
       postgres_db: graph-node
       ipfs: 'http://ipfs-sflr:5001'
       #ethereum: 'flare:https://flare.solidifi.app/ext/C/rpc'
-      ethereum: 'flare:https://flare.solidifi.app/ext/C/rpc'
+      ethereum: 'flare:https://flare.rpc.romenet.io/ext/C/rpc'
       GRAPH_LOG: info
       ETHEREUM_REORG_THRESHOLD: 0
       ETHEREUM_ANCESTOR_COUNT: 0
