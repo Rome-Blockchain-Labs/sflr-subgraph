@@ -18,6 +18,7 @@ dataSources:
       entities:
         - ExchangeRate
         - AccrueReward
+        - StakingState
       abis:
         - name: SFLR
           file: ./abis/SFLR.json

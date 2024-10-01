@@ -1,12 +1,18 @@
+type AccrueReward @entity {
+  id: ID!
+  timestamp: BigInt!
+  userRewardAmount: BigInt!
+  protocolRewardAmount: BigInt!
+}
+
 type ExchangeRate @entity {
   id: ID!
   rate: BigInt!
   timestamp: BigInt!
 }
 
-type AccrueReward @entity {
+type StakingState @entity {
   id: ID!
+  totalShares: BigInt!
   timestamp: BigInt!
-  userRewardAmount: BigInt!
-  protocolRewardAmount: BigInt!
 }
