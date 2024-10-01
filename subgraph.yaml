@@ -1,4 +1,4 @@
-specVersion: 0.0.4
+specVersion: 1.2.0
 description: Subgraph to track SFLR prices on Flare Network
 repository: https://github.com/Rome-Blockchain-Labs/sflr-subgraph.git
 schema:
@@ -13,7 +13,7 @@ dataSources:
       startBlock: 23664754
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.6
+      apiVersion: 0.0.9
       language: wasm/assemblyscript
       entities:
         - ExchangeRate
