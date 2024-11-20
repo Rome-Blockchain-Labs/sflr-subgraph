@@ -16,7 +16,7 @@ services:
           - ipfs
 
   postgres-sflr:
-    image: postgres:latest
+    image: postgres:16.5
     restart: always
     pull_policy: always
     ports:

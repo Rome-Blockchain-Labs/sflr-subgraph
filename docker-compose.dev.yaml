@@ -14,9 +14,8 @@ services:
       - sflr_network_dev
 
   postgres-sflr:
-    image: postgres:latest
+    image: postgres:16.5
     restart: always
-    pull_policy: always
     ports:
       - '29432:5432'
     environment:
