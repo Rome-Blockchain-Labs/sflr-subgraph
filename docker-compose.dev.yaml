@@ -2,6 +2,7 @@ services:
   ipfs-sflr:
     image: ipfs/kubo:latest
     restart: always
+    pull_policy: always
     ports:
       - '29001:5001'
     volumes:
@@ -15,6 +16,7 @@ services:
   postgres-sflr:
     image: postgres:latest
     restart: always
+    pull_policy: always
     ports:
       - '29432:5432'
     environment:
@@ -31,6 +33,7 @@ services:
   graph-node-sflr:
     image: graphprotocol/graph-node:latest
     restart: always
+    pull_policy: always
     ports:
       - '27000:8000'
       - '27001:8001'
