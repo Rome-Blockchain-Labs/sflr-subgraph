@@ -1,18 +1,26 @@
 type AccrueReward @entity {
   id: ID!
-  timestamp: BigInt!
+  timestamp: BigInt! @index
   userRewardAmount: BigInt!
   protocolRewardAmount: BigInt!
+  rewardType: Int @index
+  isExtended: Boolean!
+  schemaVersion: Int!
 }
 
 type ExchangeRate @entity {
   id: ID!
   rate: BigInt!
-  timestamp: BigInt!
+  timestamp: BigInt! @index
 }
 
 type StakingState @entity {
   id: ID!
   totalShares: BigInt!
-  timestamp: BigInt!
+  timestamp: BigInt! @index
+}
+
+type InvalidRewardTypeCounter @entity {
+  id: ID!
+  count: BigInt!
 }

@@ -1,80 +1,181 @@
 import requests
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
-from datetime import datetime, timedelta
+from datetime import datetime
+from decimal import Decimal
+import pandas as pd
+import seaborn as sns
 
-# GraphQL endpoint
-url = 'http://127.0.0.1:27000/subgraphs/name/sflr-subgraph'
+# Constants
+GRAPHQL_URL = 'http://127.0.0.1:27000/subgraphs/name/sflr-subgraph'
+DECIMALS = Decimal('1000000000000000000')  # 1e18
 
-# GraphQL query
-query = """
-query {
-  exchangeRates(first: 1000, orderBy: timestamp, orderDirection: asc) {
-    rate
-    timestamp
-  }
+# Reward type mapping with colors
+REWARD_TYPES = {
+    0: {"name": "UNKNOWN", "color": "#1f77b4"},
+    1: {"name": "FLAREDROPS_P_CHAIN", "color": "#ff7f0e"},
+    2: {"name": "FLAREDROPS_C_CHAIN", "color": "#2ca02c"},
+    3: {"name": "STAKING_REWARDS_P_CHAIN", "color": "#d62728"},
+    4: {"name": "DELEGATION_REWARDS_C_CHAIN", "color": "#9467bd"},
+    5: {"name": "BUYIN_STAKING_FEES", "color": "#8c564b"}
 }
-"""
 
-# Send request to the GraphQL endpoint
-response = requests.post(url, json={'query': query})
-print("API Response:", response.json())
+def fetch_graphql_data(query):
+    response = requests.post(GRAPHQL_URL, json={'query': query})
+    if response.status_code != 200:
+        raise Exception(f"Query failed: {response.status_code}")
+    return response.json().get('data', {})
 
-# Check if 'data' and 'exchangeRates' exist in the response
-if 'data' not in response.json() or 'exchangeRates' not in response.json()['data']:
-    print("Error: Unexpected API response format")
-    exit(1)
-
-data = response.json()['data']['exchangeRates']
-
-# Check if we received any data
-if not data:
-    print("Error: No exchange rate data received")
-    exit(1)
-
-# Process data
-timestamps = []
-rates = []
-for item in data:
-    try:
-        timestamp = datetime.fromtimestamp(int(item['timestamp']))
-        rate = int(item['rate']) / 1e18  # Assuming rate is stored with 18 decimals
-        timestamps.append(timestamp)
-        rates.append(rate)
-    except (ValueError, KeyError) as e:
-        print(f"Error processing item: {item}. Error: {e}")
-
-print(f"Processed {len(timestamps)} data points")
-print("First timestamp:", timestamps[0] if timestamps else "N/A")
-print("Last timestamp:", timestamps[-1] if timestamps else "N/A")
-print("Min rate:", min(rates) if rates else "N/A")
-print("Max rate:", max(rates) if rates else "N/A")
-
-# Create the plot
-plt.figure(figsize=(12, 6))
-if timestamps and rates:
-    plt.plot(timestamps, rates, marker='o', linestyle='-', markersize=2)
+def analyze_exchange_rates():
+    query = """
+    query {
+        exchangeRates(first: 1000, orderBy: timestamp, orderDirection: asc) {
+            rate
+            timestamp
+        }
+    }
+    """
+    
+    data = fetch_graphql_data(query)
+    rates_data = data.get('exchangeRates', [])
+    
+    if not rates_data:
+        print("No exchange rate data found")
+        return
+    
+    df = pd.DataFrame(rates_data)
+    df['timestamp'] = pd.to_datetime(df['timestamp'].astype(int), unit='s')
+    df['rate'] = df['rate'].apply(lambda x: Decimal(x) / DECIMALS)
+    
+    plt.figure(figsize=(12, 6))
+    plt.plot(df['timestamp'], df['rate'], marker='o', linestyle='-', markersize=2)
     plt.gca().xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
-    plt.gca().xaxis.set_major_locator(mdates.WeekdayLocator())
+    plt.gca().xaxis.set_major_locator(mdates.AutoDateLocator())
     plt.gcf().autofmt_xdate()
-    plt.ylim(min(rates) * 0.99, max(rates) * 1.01)  # Set y-axis limit to slightly below min and above max
+    plt.title('SFLR/FLR Exchange Rate')
     plt.ylabel('Exchange Rate')
-    plt.title('SFLR Exchange Rate Over Time')
     plt.grid(True, linestyle='--', alpha=0.7)
-else:
-    plt.text(0.5, 0.5, 'No data to plot', horizontalalignment='center', verticalalignment='center')
+    plt.tight_layout()
+    plt.savefig('exchange_rate_plot.png', dpi=300)
+    
+    print("\nExchange Rate Analysis:")
+    print(f"Number of data points: {len(df)}")
+    print(f"Date range: {df['timestamp'].min()} to {df['timestamp'].max()}")
+    print(f"Min rate: {df['rate'].min():.18f}")
+    print(f"Max rate: {df['rate'].max():.18f}")
+    print(f"Rate change: {((df['rate'].iloc[-1] / df['rate'].iloc[0]) - 1) * 100:.6f}%")
 
-plt.tight_layout()
+def analyze_rewards():
+    query = """
+    query {
+        accrueRewards(first: 1000, orderBy: timestamp, orderDirection: asc) {
+            timestamp
+            userRewardAmount
+            protocolRewardAmount
+            rewardType
+            isExtended
+        }
+    }
+    """
+    
+    data = fetch_graphql_data(query)
+    rewards_data = data.get('accrueRewards', [])
+    
+    if not rewards_data:
+        print("No reward data found")
+        return
+    
+    df = pd.DataFrame(rewards_data)
+    df['timestamp'] = pd.to_datetime(df['timestamp'].astype(int), unit='s')
+    df['userRewardAmount'] = df['userRewardAmount'].apply(lambda x: Decimal(x) / DECIMALS)
+    df['protocolRewardAmount'] = df['protocolRewardAmount'].apply(lambda x: Decimal(x) / DECIMALS)
+    df['rewardType'] = df['rewardType'].apply(lambda x: int(x) if x is not None else 0)
+    df['rewardTypeName'] = df['rewardType'].apply(lambda x: REWARD_TYPES[x]['name'])
+    
+    print("\nReward Analysis:")
+    print(f"Total number of reward events: {len(df)}")
+    print(f"Total user rewards: {df['userRewardAmount'].sum():.6f} FLR")
+    print(f"Total protocol rewards: {df['protocolRewardAmount'].sum():.6f} FLR")
+    
+    # Analyze by reward type
+    reward_type_summary = df.groupby('rewardTypeName').agg({
+        'userRewardAmount': ['count', 'sum'],
+        'protocolRewardAmount': 'sum'
+    }).round(6)
+    
+    print("\nRewards by type:")
+    print(reward_type_summary)
+    
+    # Plot reward distributions
+    fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 12))
+    
+    # Cumulative rewards by type
+    for reward_type in df['rewardType'].unique():
+        type_data = df[df['rewardType'] == reward_type]
+        color = REWARD_TYPES[reward_type]['color']
+        name = REWARD_TYPES[reward_type]['name']
+        
+        ax1.plot(type_data['timestamp'], 
+                type_data['userRewardAmount'].cumsum(), 
+                label=f'{name} (User)',
+                color=color,
+                linestyle='-')
+        ax1.plot(type_data['timestamp'], 
+                type_data['protocolRewardAmount'].cumsum(),
+                label=f'{name} (Protocol)',
+                color=color,
+                linestyle='--')
+    
+    ax1.set_title('Cumulative Rewards by Type')
+    ax1.set_ylabel('FLR')
+    ax1.grid(True, linestyle='--', alpha=0.7)
+    ax1.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+    ax1.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
+    ax1.xaxis.set_major_locator(mdates.AutoDateLocator())
+    
+    # Individual reward events by type
+    for reward_type in df['rewardType'].unique():
+        type_data = df[df['rewardType'] == reward_type]
+        color = REWARD_TYPES[reward_type]['color']
+        name = REWARD_TYPES[reward_type]['name']
+        
+        ax2.scatter(type_data['timestamp'], 
+                   type_data['userRewardAmount'],
+                   label=f'{name} (User)',
+                   color=color,
+                   marker='o')
+        ax2.scatter(type_data['timestamp'], 
+                   type_data['protocolRewardAmount'],
+                   label=f'{name} (Protocol)',
+                   color=color,
+                   marker='^')
+    
+    ax2.set_title('Individual Reward Events by Type')
+    ax2.set_ylabel('FLR')
+    ax2.grid(True, linestyle='--', alpha=0.7)
+    ax2.legend(bbox_to_anchor=(1.05, 1), loc='upper left')
+    ax2.xaxis.set_major_formatter(mdates.DateFormatter('%Y-%m-%d'))
+    ax2.xaxis.set_major_locator(mdates.AutoDateLocator())
+    
+    plt.gcf().autofmt_xdate()
+    plt.tight_layout()
+    plt.savefig('rewards_plot.png', dpi=300, bbox_inches='tight')
+    
+    # Additional distribution plot
+    plt.figure(figsize=(10, 6))
+    sns.boxplot(data=df, x='rewardTypeName', y='userRewardAmount')
+    plt.xticks(rotation=45)
+    plt.title('Distribution of User Rewards by Type')
+    plt.tight_layout()
+    plt.savefig('reward_distribution_plot.png', dpi=300)
 
-# Save the plot
-plt.savefig('exchange_rate_plot.png', dpi=300)
-print("Plot saved as exchange_rate_plot.png")
+def main():
+    try:
+        print("Analyzing SFLR data...")
+        analyze_exchange_rates()
+        analyze_rewards()
+    except Exception as e:
+        print(f"Error: {str(e)}")
 
-# Additional debugging: print some of the data points
-print("\nFirst 5 data points:")
-for i in range(min(5, len(timestamps))):
-    print(f"Timestamp: {timestamps[i]}, Rate: {rates[i]}")
-
-print("\nLast 5 data points:")
-for i in range(max(0, len(timestamps)-5), len(timestamps)):
-    print(f"Timestamp: {timestamps[i]}, Rate: {rates[i]}")
+if __name__ == "__main__":
+    main()
