@@ -10,7 +10,15 @@
     "test": "graph test"
   },
   "dependencies": {
-    "@graphprotocol/graph-cli": "^0.51.0",
-    "@graphprotocol/graph-ts": "^0.31.0"
+    "@graphprotocol/graph-cli": "^0.89.0",
+    "@graphprotocol/graph-ts": "^0.35.1"
+  },
+  "module": "index.ts",
+  "type": "module",
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
   }
 }

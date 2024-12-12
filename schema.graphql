@@ -1,3 +1,18 @@
+type StakingTransaction @entity {
+  id: ID!
+  user: String! @index
+  type: String! # "stake", "unlock_requested", "unlock_cancelled", "redeem"
+  flrAmount: BigInt!
+  sflrAmount: BigInt!
+  exchangeRate: BigInt!
+  timestamp: BigInt! @index
+  transactionHash: String! @index
+  unlockStartedAt: BigInt
+  redeemableAt: BigInt
+  expiresAt: BigInt
+  status: String! # "completed", "pending", "cancelled", "expired"
+}
+
 type AccrueReward @entity {
   id: ID!
   timestamp: BigInt! @index

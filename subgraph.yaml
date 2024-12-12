@@ -1,5 +1,5 @@
 specVersion: 1.2.0
-description: Subgraph to track SFLR prices on Flare Network
+description: Subgraph to track SFLR prices and staking transactions on Flare Network
 repository: https://github.com/Rome-Blockchain-Labs/sflr-subgraph.git
 schema:
   file: ./schema.graphql
@@ -19,6 +19,7 @@ dataSources:
         - ExchangeRate
         - AccrueReward
         - StakingState
+        - StakingTransaction
       abis:
         - name: SFLR
           file: ./abis/SFLR.json
@@ -27,4 +28,12 @@ dataSources:
           handler: handleAccrueRewards
         - event: AccrueRewardsExt(uint256,uint256,indexed uint8)
           handler: handleAccrueRewardsExt
+        - event: Submitted(indexed address,uint256,uint256)
+          handler: handleSubmitted
+        - event: UnlockRequested(indexed address,uint256)
+          handler: handleUnlockRequested
+        - event: UnlockCancelled(indexed address,uint256,uint256)
+          handler: handleUnlockCancelled
+        - event: Redeem(indexed address,uint256,uint256,uint256)
+          handler: handleRedeem
       file: ./src/mappings/sflr.ts
