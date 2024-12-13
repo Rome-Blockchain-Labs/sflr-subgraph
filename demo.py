@@ -169,14 +169,6 @@ def analyze_rewards():
     plt.tight_layout()
     plt.savefig('rewards_plot.png', dpi=300, bbox_inches='tight')
 
-    # Additional distribution plot
-    plt.figure(figsize=(10, 6))
-    sns.boxplot(data=df, x='rewardTypeName', y='userRewardAmount')
-    plt.xticks(rotation=45)
-    plt.title('Distribution of User Rewards by Type')
-    plt.tight_layout()
-    plt.savefig('reward_distribution_plot.png', dpi=300)
-
 def main():
     try:
         print("Analyzing SFLR data...")
