@@ -1,9 +1,8 @@
 # sflr-subgraph
 
-## dev
+## deploy
 ```sh
-docker compose -f docker-compose.dev.yaml up -d
+ssh root@helhetz01.romenet.io
+cd /opt/sceptre/sflr-subgraph
+docker compose -f docker-compose.prod.yaml up -d
 ```
-
-## prod
-look github actions
