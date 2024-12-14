@@ -575,95 +575,95 @@ export function handleDeposit(event: Deposit): void {
   metric.save()
 }
 
-export function handleApproveCall(call: ApproveCall): void {
-  let uniqueId = createUniqueId(call.block.timestamp, call.transaction.hash.toHex())
-
-  let transaction = new StakingTransaction(uniqueId)
-  transaction.user = getOrCreateAccount(call.from.toHexString()).id
-  transaction.type = "approve"
-  transaction.spender = call.inputs.spender.toHexString()
-  transaction.sflrAmount = call.inputs.amount
-  transaction.flrAmount = BigInt.fromI32(0)
-  transaction.exchangeRate = BigInt.fromI32(0)
-  transaction.timestamp = call.block.timestamp
-  transaction.blockNumber = call.block.number
-  transaction.transactionHash = call.transaction.hash.toHex()
-  transaction.status = "completed"
-  transaction.save()
-}
-
-export function handleTransferCall(call: TransferCall): void {
-  let uniqueId = createUniqueId(call.block.timestamp, call.transaction.hash.toHex())
-
-  let transaction = new StakingTransaction(uniqueId)
-  transaction.user = getOrCreateAccount(call.from.toHexString()).id
-  transaction.type = "transfer"
-  transaction.fromAddress = call.from.toHexString()
-  transaction.toAddress = call.inputs.recipient.toHexString()
-  transaction.sflrAmount = call.inputs.amount
-  transaction.flrAmount = BigInt.fromI32(0)
-  transaction.exchangeRate = BigInt.fromI32(0)
-  transaction.timestamp = call.block.timestamp
-  transaction.blockNumber = call.block.number
-  transaction.transactionHash = call.transaction.hash.toHex()
-  transaction.status = "completed"
-  transaction.save()
-}
-
-export function handleTransferFromCall(call: TransferFromCall): void {
-  let uniqueId = createUniqueId(call.block.timestamp, call.transaction.hash.toHex())
-
-  let transaction = new StakingTransaction(uniqueId)
-  transaction.user = getOrCreateAccount(call.inputs.sender.toHexString()).id
-  transaction.type = "transferFrom"
-  transaction.fromAddress = call.inputs.sender.toHexString()
-  transaction.toAddress = call.inputs.recipient.toHexString()
-  transaction.sflrAmount = call.inputs.amount
-  transaction.spender = call.from.toHexString()
-  transaction.flrAmount = BigInt.fromI32(0)
-  transaction.exchangeRate = BigInt.fromI32(0)
-  transaction.timestamp = call.block.timestamp
-  transaction.blockNumber = call.block.number
-  transaction.transactionHash = call.transaction.hash.toHex()
-  transaction.status = "completed"
-  transaction.save()
-}
-
-export function handleSubmitCall(call: SubmitCall): void {
-  // NOTE: the Submitted event handler will handle the main logic
-  // this handler can be used to capture additional data from the call itself
-  let uniqueId = createUniqueId(call.block.timestamp, call.transaction.hash.toHex(), "call")
-
-  let transaction = new StakingTransaction(uniqueId)
-  transaction.user = getOrCreateAccount(call.from.toHexString()).id
-  transaction.type = "submit_call"
-  transaction.flrAmount = call.transaction.value // Native FLR sent
-  transaction.sflrAmount = BigInt.fromI32(0) // Will be known after event
-  transaction.exchangeRate = BigInt.fromI32(0)
-  transaction.timestamp = call.block.timestamp
-  transaction.blockNumber = call.block.number
-  transaction.transactionHash = call.transaction.hash.toHex()
-  transaction.status = "completed"
-  transaction.save()
-}
-
-export function handleSubmitWrappedCall(call: SubmitWrappedCall): void {
-  // NOTE: the Submitted event handler will handle the main logic
-  // this handler can be used to capture additional data from the call itself
-  let uniqueId = createUniqueId(call.block.timestamp, call.transaction.hash.toHex(), "call")
-
-  let transaction = new StakingTransaction(uniqueId)
-  transaction.user = getOrCreateAccount(call.from.toHexString()).id
-  transaction.type = "submit_wrapped_call"
-  transaction.flrAmount = call.inputs.amount // WFLR amount
-  transaction.sflrAmount = BigInt.fromI32(0) // only known after event
-  transaction.exchangeRate = BigInt.fromI32(0)
-  transaction.timestamp = call.block.timestamp
-  transaction.blockNumber = call.block.number
-  transaction.transactionHash = call.transaction.hash.toHex()
-  transaction.status = "completed"
-  transaction.save()
-}
+// export function handleApproveCall(call: ApproveCall): void {
+//   let uniqueId = createUniqueId(call.block.timestamp, call.transaction.hash.toHex())
+//
+//   let transaction = new StakingTransaction(uniqueId)
+//   transaction.user = getOrCreateAccount(call.from.toHexString()).id
+//   transaction.type = "approve"
+//   transaction.spender = call.inputs.spender.toHexString()
+//   transaction.sflrAmount = call.inputs.amount
+//   transaction.flrAmount = BigInt.fromI32(0)
+//   transaction.exchangeRate = BigInt.fromI32(0)
+//   transaction.timestamp = call.block.timestamp
+//   transaction.blockNumber = call.block.number
+//   transaction.transactionHash = call.transaction.hash.toHex()
+//   transaction.status = "completed"
+//   transaction.save()
+// }
+//
+// export function handleTransferCall(call: TransferCall): void {
+//   let uniqueId = createUniqueId(call.block.timestamp, call.transaction.hash.toHex())
+//
+//   let transaction = new StakingTransaction(uniqueId)
+//   transaction.user = getOrCreateAccount(call.from.toHexString()).id
+//   transaction.type = "transfer"
+//   transaction.fromAddress = call.from.toHexString()
+//   transaction.toAddress = call.inputs.recipient.toHexString()
+//   transaction.sflrAmount = call.inputs.amount
+//   transaction.flrAmount = BigInt.fromI32(0)
+//   transaction.exchangeRate = BigInt.fromI32(0)
+//   transaction.timestamp = call.block.timestamp
+//   transaction.blockNumber = call.block.number
+//   transaction.transactionHash = call.transaction.hash.toHex()
+//   transaction.status = "completed"
+//   transaction.save()
+// }
+//
+// export function handleTransferFromCall(call: TransferFromCall): void {
+//   let uniqueId = createUniqueId(call.block.timestamp, call.transaction.hash.toHex())
+//
+//   let transaction = new StakingTransaction(uniqueId)
+//   transaction.user = getOrCreateAccount(call.inputs.sender.toHexString()).id
+//   transaction.type = "transferFrom"
+//   transaction.fromAddress = call.inputs.sender.toHexString()
+//   transaction.toAddress = call.inputs.recipient.toHexString()
+//   transaction.sflrAmount = call.inputs.amount
+//   transaction.spender = call.from.toHexString()
+//   transaction.flrAmount = BigInt.fromI32(0)
+//   transaction.exchangeRate = BigInt.fromI32(0)
+//   transaction.timestamp = call.block.timestamp
+//   transaction.blockNumber = call.block.number
+//   transaction.transactionHash = call.transaction.hash.toHex()
+//   transaction.status = "completed"
+//   transaction.save()
+// }
+//
+// export function handleSubmitCall(call: SubmitCall): void {
+//   // NOTE: the Submitted event handler will handle the main logic
+//   // this handler can be used to capture additional data from the call itself
+//   let uniqueId = createUniqueId(call.block.timestamp, call.transaction.hash.toHex(), "call")
+//
+//   let transaction = new StakingTransaction(uniqueId)
+//   transaction.user = getOrCreateAccount(call.from.toHexString()).id
+//   transaction.type = "submit_call"
+//   transaction.flrAmount = call.transaction.value // Native FLR sent
+//   transaction.sflrAmount = BigInt.fromI32(0) // Will be known after event
+//   transaction.exchangeRate = BigInt.fromI32(0)
+//   transaction.timestamp = call.block.timestamp
+//   transaction.blockNumber = call.block.number
+//   transaction.transactionHash = call.transaction.hash.toHex()
+//   transaction.status = "completed"
+//   transaction.save()
+// }
+//
+// export function handleSubmitWrappedCall(call: SubmitWrappedCall): void {
+//   // NOTE: the Submitted event handler will handle the main logic
+//   // this handler can be used to capture additional data from the call itself
+//   let uniqueId = createUniqueId(call.block.timestamp, call.transaction.hash.toHex(), "call")
+//
+//   let transaction = new StakingTransaction(uniqueId)
+//   transaction.user = getOrCreateAccount(call.from.toHexString()).id
+//   transaction.type = "submit_wrapped_call"
+//   transaction.flrAmount = call.inputs.amount // WFLR amount
+//   transaction.sflrAmount = BigInt.fromI32(0) // only known after event
+//   transaction.exchangeRate = BigInt.fromI32(0)
+//   transaction.timestamp = call.block.timestamp
+//   transaction.blockNumber = call.block.number
+//   transaction.transactionHash = call.transaction.hash.toHex()
+//   transaction.status = "completed"
+//   transaction.save()
+// }
 
 // helper export function to increment invalid reward type counter
 export function incrementInvalidRewardTypeCounter(): void {

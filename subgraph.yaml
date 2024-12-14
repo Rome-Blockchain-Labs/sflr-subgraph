@@ -73,15 +73,16 @@ dataSources:
           handler: handleMintingPaused
         - event: MintingResumed(address)
           handler: handleMintingResumed
-      callHandlers:
-        - function: approve(address,uint256)
-          handler: handleApproveCall
-        - function: transfer(address,uint256)
-          handler: handleTransferCall
-        - function: transferFrom(address,address,uint256)
-          handler: handleTransferFromCall
-        - function: submit()
-          handler: handleSubmitCall
-        - function: submitWrapped(uint256)
-          handler: handleSubmitWrappedCall
+      # https://openethereum.github.io/JSONRPC-trace-module not supported in flare...
+      # callHandlers:
+      #   - function: approve(address,uint256)
+      #     handler: handleApproveCall
+      #   - function: transfer(address,uint256)
+      #     handler: handleTransferCall
+      #   - function: transferFrom(address,address,uint256)
+      #     handler: handleTransferFromCall
+      #   - function: submit()
+      #     handler: handleSubmitCall
+      #   - function: submitWrapped(uint256)
+      #     handler: handleSubmitWrappedCall
       file: ./src/mappings/sflr.ts
