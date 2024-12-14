@@ -68,7 +68,7 @@ services:
       - SUBGRAPH_NAME=sflr-subgraph
       - NODE_URL=http://graph-node-sflr:8020/
       - IPFS_URL=http://ipfs-sflr:5001
-      - VERSION=0.0.8
+      - VERSION=0.1.0
     depends_on:
       - graph-node-sflr
       - ipfs-sflr
