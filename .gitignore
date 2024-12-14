@@ -5,3 +5,6 @@ node_modules/
 src/types/
 pw
 exchange_rate_plot.png
+address_rewards.png
+address_transactions.png
+rewards_plot.png
