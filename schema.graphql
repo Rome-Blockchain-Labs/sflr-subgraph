@@ -1,16 +1,79 @@
 type StakingTransaction @entity {
   id: ID!
-  user: String! @index
-  type: String! # "stake", "unlock_requested", "unlock_cancelled", "redeem"
+  user: Account! @index
+  type: String! # "stake", "unlock_requested", "unlock_cancelled", "redeem", "redeem_overdue", "withdraw", "deposit", "transfer", "approve"
   flrAmount: BigInt!
   sflrAmount: BigInt!
   exchangeRate: BigInt!
   timestamp: BigInt! @index
+  blockNumber: BigInt! @index
   transactionHash: String! @index
   unlockStartedAt: BigInt
   redeemableAt: BigInt
   expiresAt: BigInt
   status: String! # "completed", "pending", "cancelled", "expired"
+  fromAddress: String @index
+  toAddress: String @index
+  spender: String @index
+}
+
+type UnlockRequest @entity {
+  id: ID!
+  user: Account! @index  # 
+  startedAt: BigInt! @index
+  shareAmount: BigInt!
+  status: String! # "pending", "completed", "cancelled", "expired"
+  redeemableAt: BigInt!
+  expiresAt: BigInt!
+  transaction: String! # ref to StakingTransaction
+  redemptionTransaction: String # ref to redeem StakingTransaction if redeemed
+}
+
+type Account @entity {
+  id: ID! # user address
+  balance: BigInt!
+  totalTransferred: BigInt!
+  totalReceived: BigInt!
+  allowances: [Allowance!]! @derivedFrom(field: "owner")
+  unlockRequests: [UnlockRequest!]! @derivedFrom(field: "user")
+  transactions: [StakingTransaction!]! @derivedFrom(field: "user")
+  lastUpdated: BigInt! @index
+}
+
+type Allowance @entity {
+  id: ID! # owner-spender
+  owner: Account!
+  spender: String! @index
+  amount: BigInt!
+  lastUpdated: BigInt! @index
+}
+
+type UserMetric @entity {
+  id: ID! # user address
+  currentShares: BigInt!
+  totalStaked: BigInt!
+  totalUnstaked: BigInt!
+  totalRewardsEarned: BigInt!
+  lastInteractionTime: BigInt! @index
+  transactionCount: BigInt!
+  custodiedShares: BigInt!
+  # New metrics
+  activeUnlockRequestCount: Int!
+  totalTransferCount: BigInt!
+  totalRewardsClaimed: BigInt!
+  firstInteractionTime: BigInt! @index
+}
+
+type UserReward @entity {
+  id: ID!
+  user: String! @index
+  rewardType: Int! @index
+  amount: BigInt!
+  timestamp: BigInt! @index
+  blockNumber: BigInt! @index
+  transactionHash: String! @index
+  shareBalance: BigInt! # User's share balance at time of reward
+  totalShares: BigInt! # Total pool shares at time of reward
 }
 
 type AccrueReward @entity {
@@ -21,6 +84,8 @@ type AccrueReward @entity {
   rewardType: Int @index
   isExtended: Boolean!
   schemaVersion: Int!
+  blockNumber: BigInt! @index
+  transactionHash: String! @index
 }
 
 type ExchangeRate @entity {
@@ -32,10 +97,34 @@ type ExchangeRate @entity {
 type StakingState @entity {
   id: ID!
   totalShares: BigInt!
+  totalPooledFlr: BigInt!
   timestamp: BigInt! @index
+  stakerCount: BigInt!
 }
 
 type InvalidRewardTypeCounter @entity {
   id: ID!
   count: BigInt!
+}
+
+type ProtocolConfig @entity {
+  id: ID!
+  timestamp: BigInt! @index
+  cooldownPeriod: BigInt!
+  redeemPeriod: BigInt!
+  totalPooledFlrCap: BigInt!
+  protocolRewardShare: BigInt!
+  protocolRewardRecipient: String
+  mintingPaused: Boolean!
+  buyInStakingFee: BigInt!
+}
+
+type ConfigChange @entity {
+  id: ID!
+  timestamp: BigInt! @index
+  blockNumber: BigInt! @index
+  parameter: String!
+  oldValue: String!
+  newValue: String!
+  transactionHash: String! @index
 }

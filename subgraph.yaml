@@ -20,14 +20,19 @@ dataSources:
         - AccrueReward
         - StakingState
         - StakingTransaction
+        - Account
+        - Allowance
+        - UnlockRequest
+        - UserMetric
+        - UserReward
+        - ProtocolConfig
+        - ConfigChange
+        - InvalidRewardTypeCounter
       abis:
         - name: SFLR
           file: ./abis/SFLR.json
       eventHandlers:
-        - event: AccrueRewards(uint256,uint256)
-          handler: handleAccrueRewards
-        - event: AccrueRewardsExt(uint256,uint256,indexed uint8)
-          handler: handleAccrueRewardsExt
+        # staking
         - event: Submitted(indexed address,uint256,uint256)
           handler: handleSubmitted
         - event: UnlockRequested(indexed address,uint256)
@@ -36,4 +41,47 @@ dataSources:
           handler: handleUnlockCancelled
         - event: Redeem(indexed address,uint256,uint256,uint256)
           handler: handleRedeem
+        # rewards
+        - event: AccrueRewards(uint256,uint256)
+          handler: handleAccrueRewards
+        - event: AccrueRewardsExt(uint256,uint256,indexed uint8)
+          handler: handleAccrueRewardsExt
+        - event: RedeemOverdueShares(indexed address,uint256)
+          handler: handleRedeemOverdueShares
+        - event: Withdraw(indexed address,uint256)
+          handler: handleWithdraw
+        - event: Deposit(indexed address,uint256)
+          handler: handleDeposit
+        # ERC20
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleTransfer
+        - event: Approval(indexed address,indexed address,uint256)
+          handler: handleApproval
+        # configuration
+        - event: CooldownPeriodUpdated(uint256,uint256)
+          handler: handleCooldownPeriodUpdated
+        - event: RedeemPeriodUpdated(uint256,uint256)
+          handler: handleRedeemPeriodUpdated
+        - event: TotalPooledFlrCapUpdated(uint256,uint256)
+          handler: handleTotalPooledFlrCapUpdated
+        - event: ProtocolRewardShareRecipientUpdated(address,address)
+          handler: handleProtocolRewardShareRecipientUpdated
+        - event: ProtocolRewardShareUpdated(uint256,uint256)
+          handler: handleProtocolRewardShareUpdated
+        # contract state
+        - event: MintingPaused(address)
+          handler: handleMintingPaused
+        - event: MintingResumed(address)
+          handler: handleMintingResumed
+      callHandlers:
+        - function: approve(address,uint256)
+          handler: handleApproveCall
+        - function: transfer(address,uint256)
+          handler: handleTransferCall
+        - function: transferFrom(address,address,uint256)
+          handler: handleTransferFromCall
+        - function: submit()
+          handler: handleSubmitCall
+        - function: submitWrapped(uint256)
+          handler: handleSubmitWrappedCall
       file: ./src/mappings/sflr.ts
