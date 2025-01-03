@@ -19,7 +19,7 @@ type StakingTransaction @entity {
 
 type UnlockRequest @entity {
   id: ID!
-  user: Account! @index  # 
+  user: Account! @index  #
   startedAt: BigInt! @index
   shareAmount: BigInt!
   status: String! # "pending", "completed", "cancelled", "expired"
@@ -72,8 +72,8 @@ type UserReward @entity {
   timestamp: BigInt! @index
   blockNumber: BigInt! @index
   transactionHash: String! @index
-  shareBalance: BigInt! # User's share balance at time of reward
-  totalShares: BigInt! # Total pool shares at time of reward
+  shareBalance: BigInt!
+  totalShares: BigInt!
 }
 
 type AccrueReward @entity {
@@ -90,7 +90,7 @@ type AccrueReward @entity {
 
 type ExchangeRate @entity {
   id: ID!
-  rate: BigInt!
+  rate: BigInt! @index
   timestamp: BigInt! @index
 }
 

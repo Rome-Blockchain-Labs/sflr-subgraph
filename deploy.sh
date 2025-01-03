@@ -4,7 +4,7 @@
 SUBGRAPH_NAME="${SUBGRAPH_NAME:-sflr-subgraph}"
 NODE_URL="${NODE_URL:-http://graph-node-sflr:8020/}"
 IPFS_URL="${IPFS_URL:-http://ipfs-sflr:5001}"
-VERSION="${VERSION:-0.1.0}"
+VERSION="${VERSION:-0.1.1}"
 
 echo "Deploying subgraph: $SUBGRAPH_NAME with version: $VERSION"
 

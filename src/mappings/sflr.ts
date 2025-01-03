@@ -4,7 +4,6 @@ import {
   AccrueRewards,
   AccrueRewardsExt,
   Approval,
-  ApproveCall,
   CooldownPeriodUpdated,
   Deposit,
   MintingPaused,
@@ -14,13 +13,9 @@ import {
   Redeem,
   RedeemOverdueShares,
   RedeemPeriodUpdated,
-  SubmitCall,
-  SubmitWrappedCall,
   Submitted,
   TotalPooledFlrCapUpdated,
   Transfer,
-  TransferCall,
-  TransferFromCall,
   UnlockCancelled,
   UnlockRequested,
   Withdraw
@@ -112,31 +107,36 @@ export function getOrCreateProtocolConfig(): ProtocolConfig {
   return config
 }
 
-export function handleCommonState(contract: SFLR, timestamp: BigInt, txHash: string): void {
-  let oneShare = BigInt.fromI32(10).pow(18)
-  let totalShares = contract.totalShares()
-  let flrAmount = contract.getPooledFlrByShares(oneShare)
-
-  let uniqueId = createUniqueId(timestamp, txHash)
-
-  let stakingState = new StakingState(uniqueId)
-  stakingState.totalShares = totalShares
-  stakingState.totalPooledFlr = contract.totalPooledFlr()
-  stakingState.timestamp = timestamp
-  stakingState.stakerCount = contract.stakerCount()
-  stakingState.save()
-
-  let exchangeRate = new ExchangeRate(uniqueId)
-  exchangeRate.rate = flrAmount
-  exchangeRate.timestamp = timestamp
-  exchangeRate.save()
+export function createHourlyTimestampId(timestamp: BigInt): string {
+  // round down to the nearest hour by dividing by 3600 (seconds in an hour)
+  let hourlyTimestamp = timestamp.div(BigInt.fromI32(3600)).times(BigInt.fromI32(3600))
+  return hourlyTimestamp.toString()
 }
 
-export function calculateExchangeRate(flrAmount: BigInt, shareAmount: BigInt): BigInt {
-  if (shareAmount.equals(BigInt.fromI32(0))) {
-    return BigInt.fromI32(0)
+export function handleCommonState(contract: SFLR, timestamp: BigInt, txHash: string): void {
+  let oneShare = BigInt.fromI32(10).pow(18);
+  let flrAmount = contract.getPooledFlrByShares(oneShare);
+
+  let uniqueId = createUniqueId(timestamp, txHash);
+  let hourlyId = createHourlyTimestampId(timestamp);
+
+  // save staking state
+  let stakingState = new StakingState(uniqueId);
+  stakingState.totalShares = contract.totalShares();
+  stakingState.totalPooledFlr = contract.totalPooledFlr();
+  stakingState.timestamp = timestamp;
+  stakingState.stakerCount = contract.stakerCount();
+  stakingState.save();
+
+  // prevent duplicate or identical exchange rate entries
+  let lastExchangeRate = ExchangeRate.load(hourlyId);
+
+  if (!lastExchangeRate || !lastExchangeRate.rate.equals(flrAmount)) {
+    let exchangeRate = new ExchangeRate(hourlyId);
+    exchangeRate.rate = flrAmount;
+    exchangeRate.timestamp = timestamp;
+    exchangeRate.save();
   }
-  return flrAmount.times(BigInt.fromI32(10).pow(18)).div(shareAmount)
 }
 
 // core staking event handlers
@@ -575,96 +575,6 @@ export function handleDeposit(event: Deposit): void {
   metric.save()
 }
 
-// export function handleApproveCall(call: ApproveCall): void {
-//   let uniqueId = createUniqueId(call.block.timestamp, call.transaction.hash.toHex())
-//
-//   let transaction = new StakingTransaction(uniqueId)
-//   transaction.user = getOrCreateAccount(call.from.toHexString()).id
-//   transaction.type = "approve"
-//   transaction.spender = call.inputs.spender.toHexString()
-//   transaction.sflrAmount = call.inputs.amount
-//   transaction.flrAmount = BigInt.fromI32(0)
-//   transaction.exchangeRate = BigInt.fromI32(0)
-//   transaction.timestamp = call.block.timestamp
-//   transaction.blockNumber = call.block.number
-//   transaction.transactionHash = call.transaction.hash.toHex()
-//   transaction.status = "completed"
-//   transaction.save()
-// }
-//
-// export function handleTransferCall(call: TransferCall): void {
-//   let uniqueId = createUniqueId(call.block.timestamp, call.transaction.hash.toHex())
-//
-//   let transaction = new StakingTransaction(uniqueId)
-//   transaction.user = getOrCreateAccount(call.from.toHexString()).id
-//   transaction.type = "transfer"
-//   transaction.fromAddress = call.from.toHexString()
-//   transaction.toAddress = call.inputs.recipient.toHexString()
-//   transaction.sflrAmount = call.inputs.amount
-//   transaction.flrAmount = BigInt.fromI32(0)
-//   transaction.exchangeRate = BigInt.fromI32(0)
-//   transaction.timestamp = call.block.timestamp
-//   transaction.blockNumber = call.block.number
-//   transaction.transactionHash = call.transaction.hash.toHex()
-//   transaction.status = "completed"
-//   transaction.save()
-// }
-//
-// export function handleTransferFromCall(call: TransferFromCall): void {
-//   let uniqueId = createUniqueId(call.block.timestamp, call.transaction.hash.toHex())
-//
-//   let transaction = new StakingTransaction(uniqueId)
-//   transaction.user = getOrCreateAccount(call.inputs.sender.toHexString()).id
-//   transaction.type = "transferFrom"
-//   transaction.fromAddress = call.inputs.sender.toHexString()
-//   transaction.toAddress = call.inputs.recipient.toHexString()
-//   transaction.sflrAmount = call.inputs.amount
-//   transaction.spender = call.from.toHexString()
-//   transaction.flrAmount = BigInt.fromI32(0)
-//   transaction.exchangeRate = BigInt.fromI32(0)
-//   transaction.timestamp = call.block.timestamp
-//   transaction.blockNumber = call.block.number
-//   transaction.transactionHash = call.transaction.hash.toHex()
-//   transaction.status = "completed"
-//   transaction.save()
-// }
-//
-// export function handleSubmitCall(call: SubmitCall): void {
-//   // NOTE: the Submitted event handler will handle the main logic
-//   // this handler can be used to capture additional data from the call itself
-//   let uniqueId = createUniqueId(call.block.timestamp, call.transaction.hash.toHex(), "call")
-//
-//   let transaction = new StakingTransaction(uniqueId)
-//   transaction.user = getOrCreateAccount(call.from.toHexString()).id
-//   transaction.type = "submit_call"
-//   transaction.flrAmount = call.transaction.value // Native FLR sent
-//   transaction.sflrAmount = BigInt.fromI32(0) // Will be known after event
-//   transaction.exchangeRate = BigInt.fromI32(0)
-//   transaction.timestamp = call.block.timestamp
-//   transaction.blockNumber = call.block.number
-//   transaction.transactionHash = call.transaction.hash.toHex()
-//   transaction.status = "completed"
-//   transaction.save()
-// }
-//
-// export function handleSubmitWrappedCall(call: SubmitWrappedCall): void {
-//   // NOTE: the Submitted event handler will handle the main logic
-//   // this handler can be used to capture additional data from the call itself
-//   let uniqueId = createUniqueId(call.block.timestamp, call.transaction.hash.toHex(), "call")
-//
-//   let transaction = new StakingTransaction(uniqueId)
-//   transaction.user = getOrCreateAccount(call.from.toHexString()).id
-//   transaction.type = "submit_wrapped_call"
-//   transaction.flrAmount = call.inputs.amount // WFLR amount
-//   transaction.sflrAmount = BigInt.fromI32(0) // only known after event
-//   transaction.exchangeRate = BigInt.fromI32(0)
-//   transaction.timestamp = call.block.timestamp
-//   transaction.blockNumber = call.block.number
-//   transaction.transactionHash = call.transaction.hash.toHex()
-//   transaction.status = "completed"
-//   transaction.save()
-// }
-
 // helper export function to increment invalid reward type counter
 export function incrementInvalidRewardTypeCounter(): void {
   let counter = InvalidRewardTypeCounter.load("global")
@@ -679,4 +589,11 @@ export function incrementInvalidRewardTypeCounter(): void {
 // helper export function to validate reward types
 export function isValidRewardType(rewardType: number): boolean {
   return rewardType >= REWARD_TYPE_UNKNOWN && rewardType <= REWARD_TYPE_BUYIN_STAKING_FEES
+}
+
+export function calculateExchangeRate(flrAmount: BigInt, shareAmount: BigInt): BigInt {
+  if (shareAmount.equals(BigInt.fromI32(0))) {
+    return BigInt.fromI32(0);
+  }
+  return flrAmount.times(BigInt.fromI32(10).pow(18)).div(shareAmount);
 }
