@@ -114,28 +114,32 @@ export function createHourlyTimestampId(timestamp: BigInt): string {
 }
 
 export function handleCommonState(contract: SFLR, timestamp: BigInt, txHash: string): void {
-  let oneShare = BigInt.fromI32(10).pow(18);
-  let flrAmount = contract.getPooledFlrByShares(oneShare);
+  const SCALING_FACTOR = BigInt.fromI32(10).pow(18);
+  const currentRate = contract.getPooledFlrByShares(SCALING_FACTOR);
 
-  let uniqueId = createUniqueId(timestamp, txHash);
-  let hourlyId = createHourlyTimestampId(timestamp);
-
-  // save staking state
-  let stakingState = new StakingState(uniqueId);
+  // store immutable state immediately
+  const stakingState = new StakingState(createUniqueId(timestamp, txHash));
+  stakingState.timestamp = timestamp;
   stakingState.totalShares = contract.totalShares();
   stakingState.totalPooledFlr = contract.totalPooledFlr();
-  stakingState.timestamp = timestamp;
   stakingState.stakerCount = contract.stakerCount();
   stakingState.save();
-
-  // prevent duplicate or identical exchange rate entries
-  let lastExchangeRate = ExchangeRate.load(hourlyId);
-
-  if (!lastExchangeRate || !lastExchangeRate.rate.equals(flrAmount)) {
-    let exchangeRate = new ExchangeRate(hourlyId);
-    exchangeRate.rate = flrAmount;
-    exchangeRate.timestamp = timestamp;
-    exchangeRate.save();
+  // track the latest rate in a singleton
+  const LATEST_RATE_ID = "latest";
+  let latestRate = ExchangeRate.load(LATEST_RATE_ID);
+  // store new rate if it's the first one or if changed
+  if (!latestRate || !latestRate.rate.equals(currentRate)) {
+    const newRate = new ExchangeRate(createUniqueId(timestamp, txHash));
+    newRate.rate = currentRate;
+    newRate.timestamp = timestamp;
+    newRate.save();
+    // update latest rate tracker
+    if (!latestRate) {
+      latestRate = new ExchangeRate(LATEST_RATE_ID);
+    }
+    latestRate.rate = currentRate;
+    latestRate.timestamp = timestamp;
+    latestRate.save();
   }
 }
 
