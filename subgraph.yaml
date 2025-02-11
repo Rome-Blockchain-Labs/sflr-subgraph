@@ -74,3 +74,46 @@ dataSources:
         - event: MintingResumed(address)
           handler: handleMintingResumed
       file: ./src/mappings/sflr.ts
+  - kind: ethereum/contract
+    name: WFLRContract
+    network: flare
+    source:
+      address: "0x1D80c49BbBCd1C0911346656B529DF9E5c2F783d"
+      abi: WFLR
+      startBlock: 23664754
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - StakingTransaction
+        - Account
+      abis:
+        - name: WFLR
+          file: ./abis/WFLR.json
+      eventHandlers:
+        - event: Deposit(indexed address,uint256)
+          handler: handleWrapFLR
+        - event: Withdraw(indexed address,uint256)
+          handler: handleUnwrapFLR
+      file: ./src/mappings/sflr.ts
+  - kind: ethereum/contract
+    name: NativeFLR
+    network: flare
+    source:
+      address: "0x0000000000000000000000000000000000000000"
+      abi: NativeFLR
+      startBlock: 23664754
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - StakingTransaction
+        - Account
+      abis:
+        - name: NativeFLR
+          file: ./abis/NativeFLR.json
+      blockHandlers:
+        - handler: handleBlock
+      file: ./src/mappings/native.ts
