@@ -32,8 +32,11 @@ type UnlockRequest @entity {
 type Account @entity {
   id: ID! # user address
   balance: BigInt!
+  totalWrappedFlr: BigInt!
   totalTransferred: BigInt!
+  totalTransferredWrapped: BigInt!
   totalReceived: BigInt!
+  totalReceivedWrapped: BigInt!
   allowances: [Allowance!]! @derivedFrom(field: "owner")
   unlockRequests: [UnlockRequest!]! @derivedFrom(field: "user")
   transactions: [StakingTransaction!]! @derivedFrom(field: "user")

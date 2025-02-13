@@ -7,7 +7,7 @@ import {
 import {
   StakingTransaction,
 } from "../../generated/schema"
-import { createUniqueId, getOrCreateAccount } from "./sflr";
+import { createUniqueId, getOrCreateAccount, getOrCreateUserMetric } from "./sflr";
 
 export function handleWrapFLR(event: Deposit): void {
   let uniqueId = createUniqueId(event.block.timestamp, event.transaction.hash.toHex())
@@ -24,6 +24,14 @@ export function handleWrapFLR(event: Deposit): void {
   transaction.transactionHash = event.transaction.hash.toHex()
   transaction.status = "completed"
   transaction.save()
+
+  let metric = getOrCreateUserMetric(userAddress)
+    metric.totalWrappedFlr = metric.currentShares.plus(event.params.amount)
+    metric.lastInteractionTime = event.block.timestamp
+    if (metric.firstInteractionTime.equals(BigInt.fromI32(0))) {
+      metric.firstInteractionTime = event.block.timestamp
+    }
+    metric.save()
 }
 
 export function handleUnwrapFLR(event: Withdraw): void {
@@ -41,6 +49,14 @@ export function handleUnwrapFLR(event: Withdraw): void {
   transaction.transactionHash = event.transaction.hash.toHex()
   transaction.status = "completed"
   transaction.save()
+
+  let metric = getOrCreateUserMetric(userAddress)
+    metric.totalWrappedFlr = metric.currentShares.minus(event.params.amount)
+    metric.lastInteractionTime = event.block.timestamp
+    if (metric.firstInteractionTime.equals(BigInt.fromI32(0))) {
+      metric.firstInteractionTime = event.block.timestamp
+    }
+    metric.save()
 }
 
 export function handleWrappedTransfer(event: Transfer): void {
@@ -62,4 +78,22 @@ export function handleWrappedTransfer(event: Transfer): void {
   transaction.transactionHash = event.transaction.hash.toHex()
   transaction.status = "completed"
   transaction.save()
+
+  let fromMetric = getOrCreateUserMetric(fromAddress)
+    fromMetric.totalWrappedFlr = fromMetric.currentShares.minus(event.params.value)
+    fromMetric.totalTransferredWrapped = fromMetric.currentShares.minus(event.params.value)
+    fromMetric.lastInteractionTime = event.block.timestamp
+    if (fromMetric.firstInteractionTime.equals(BigInt.fromI32(0))) {
+      fromMetric.firstInteractionTime = event.block.timestamp
+    }
+    fromMetric.save()
+
+    let toMetric = getOrCreateUserMetric(toAddress)
+    toMetric.totalWrappedFlr = fromMetric.currentShares.minus(event.params.value)
+    toMetric.totalReceivedWrapped = toMetric.currentShares.plus(event.params.value)
+    toMetric.lastInteractionTime = event.block.timestamp
+    if (toMetric.firstInteractionTime.equals(BigInt.fromI32(0))) {
+      toMetric.firstInteractionTime = event.block.timestamp
+    }
+    toMetric.save()
 }
