@@ -51,6 +51,14 @@ type Allowance @entity {
   lastUpdated: BigInt! @index
 }
 
+type WrappedAllowance @entity {
+  id: ID! # owner-spender
+  owner: Account!
+  spender: String! @index
+  amount: BigInt!
+  lastUpdated: BigInt! @index
+}
+
 type UserMetric @entity {
   id: ID! # user address
   currentShares: BigInt!

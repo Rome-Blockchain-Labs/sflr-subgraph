@@ -2,7 +2,7 @@ import { BigInt } from "@graphprotocol/graph-ts"
 import {
   Deposit,
   Transfer,
-  Withdraw,
+  Withdrawal,
   Approval
 } from "../../generated/WFLRContract/WFLR"
 import {
@@ -41,7 +41,7 @@ export function handleWrapFLR(event: Deposit): void {
   metric.save()
 }
 
-export function handleUnwrapFLR(event: Withdraw): void {
+export function handleUnwrapFLR(event: Withdrawal): void {
   let uniqueId = createUniqueId(event.block.timestamp, event.transaction.hash.toHex())
   let userAddress = event.params.user.toHexString()
 
