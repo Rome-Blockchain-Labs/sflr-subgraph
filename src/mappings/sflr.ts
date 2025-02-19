@@ -62,6 +62,7 @@ export function getOrCreateAccount(address: string): Account {
   if (!account) {
     account = new Account(address)
     account.balance = BigInt.fromI32(0)
+    account.totalWrappedFlr = BigInt.fromI32(0)
     account.totalTransferred = BigInt.fromI32(0)
     account.totalTransferredWrapped = BigInt.fromI32(0)
     account.totalReceived = BigInt.fromI32(0)
@@ -79,7 +80,6 @@ export function getOrCreateUserMetric(address: string): UserMetric {
     metric.currentShares = BigInt.fromI32(0)
     metric.totalStaked = BigInt.fromI32(0)
     metric.totalUnstaked = BigInt.fromI32(0)
-    metric.totalWrappedFlr = BigInt.fromI32(0)
     metric.totalRewardsEarned = BigInt.fromI32(0)
     metric.lastInteractionTime = BigInt.fromI32(0)
     metric.transactionCount = BigInt.fromI32(0)

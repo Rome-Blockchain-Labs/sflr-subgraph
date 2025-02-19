@@ -1,15 +1,15 @@
 import { BigInt } from "@graphprotocol/graph-ts"
 import {
-  Approval,
   Deposit,
   Transfer,
-  Withdraw
-} from "../../generated/SFLRContract/SFLR"
+  Withdrawal,
+  Approval
+} from "../../generated/WFLRContract/WFLR"
 import {
-  WrappedAllowance,
   StakingTransaction,
+  Allowance,
 } from "../../generated/schema"
-import { createUniqueId, getOrCreateAccount, getOrCreateUserMetric } from "./sflr";
+import { getOrCreateAccount, createUniqueId, getOrCreateUserMetric } from "./sflr";
 
 export function handleWrapFLR(event: Deposit): void {
   let uniqueId = createUniqueId(event.block.timestamp, event.transaction.hash.toHex())
@@ -27,16 +27,21 @@ export function handleWrapFLR(event: Deposit): void {
   transaction.status = "completed"
   transaction.save()
 
+  let account = getOrCreateAccount(userAddress)
+  account.totalWrappedFlr = account.totalWrappedFlr.plus(event.params.amount)
+  account.lastUpdated = event.block.timestamp
+  account.save()
+
   let metric = getOrCreateUserMetric(userAddress)
-  metric.totalWrappedFlr = metric.totalWrappedFlr.plus(event.params.amount)
   metric.lastInteractionTime = event.block.timestamp
+  metric.transactionCount = metric.transactionCount.plus(BigInt.fromI32(1))
   if (metric.firstInteractionTime.equals(BigInt.fromI32(0))) {
     metric.firstInteractionTime = event.block.timestamp
   }
   metric.save()
 }
 
-export function handleUnwrapFLR(event: Withdraw): void {
+export function handleUnwrapFLR(event: Withdrawal): void {
   let uniqueId = createUniqueId(event.block.timestamp, event.transaction.hash.toHex())
   let userAddress = event.params.user.toHexString()
 
@@ -52,9 +57,14 @@ export function handleUnwrapFLR(event: Withdraw): void {
   transaction.status = "completed"
   transaction.save()
 
+  let account = getOrCreateAccount(userAddress)
+  account.totalWrappedFlr = account.totalWrappedFlr.minus(event.params.amount)
+  account.lastUpdated = event.block.timestamp
+  account.save()
+
   let metric = getOrCreateUserMetric(userAddress)
-  metric.totalWrappedFlr = metric.totalWrappedFlr.minus(event.params.amount)
   metric.lastInteractionTime = event.block.timestamp
+  metric.transactionCount = metric.transactionCount.plus(BigInt.fromI32(1))
   if (metric.firstInteractionTime.equals(BigInt.fromI32(0))) {
     metric.firstInteractionTime = event.block.timestamp
   }
@@ -81,55 +91,71 @@ export function handleWrappedTransfer(event: Transfer): void {
   transaction.status = "completed"
   transaction.save()
 
+  let fromAccount = getOrCreateAccount(fromAddress)
+  fromAccount.totalWrappedFlr = fromAccount.totalWrappedFlr.minus(event.params.value)
+  fromAccount.totalTransferredWrapped = fromAccount.totalTransferredWrapped.plus(event.params.value)
+  fromAccount.lastUpdated = event.block.timestamp
+  fromAccount.save()
+
+  let toAccount = getOrCreateAccount(toAddress)
+  toAccount.totalWrappedFlr = toAccount.totalWrappedFlr.plus(event.params.value)
+  toAccount.totalReceivedWrapped = toAccount.totalReceivedWrapped.plus(event.params.value)
+  toAccount.lastUpdated = event.block.timestamp
+  toAccount.save()
+
   let fromMetric = getOrCreateUserMetric(fromAddress)
-  fromMetric.totalWrappedFlr = fromMetric.totalWrappedFlr.minus(event.params.value)
   fromMetric.lastInteractionTime = event.block.timestamp
+  fromMetric.transactionCount = fromMetric.transactionCount.plus(BigInt.fromI32(1))
+  fromMetric.totalTransferCount = fromMetric.totalTransferCount.plus(BigInt.fromI32(1))
   if (fromMetric.firstInteractionTime.equals(BigInt.fromI32(0))) {
     fromMetric.firstInteractionTime = event.block.timestamp
   }
   fromMetric.save()
 
   let toMetric = getOrCreateUserMetric(toAddress)
-  toMetric.totalWrappedFlr = fromMetric.totalWrappedFlr.minus(event.params.value)
   toMetric.lastInteractionTime = event.block.timestamp
+  toMetric.transactionCount = toMetric.transactionCount.plus(BigInt.fromI32(1))
+  toMetric.totalTransferCount = toMetric.totalTransferCount.plus(BigInt.fromI32(1))
   if (toMetric.firstInteractionTime.equals(BigInt.fromI32(0))) {
     toMetric.firstInteractionTime = event.block.timestamp
   }
   toMetric.save()
-
-  let fromAccount = getOrCreateAccount(fromAddress)
-  fromAccount.totalTransferredWrapped = fromAccount.totalTransferredWrapped.minus(event.params.value)
-
-  let toAccount = getOrCreateAccount(toAddress)
-  toAccount.totalReceivedWrapped = toAccount.totalReceivedWrapped.plus(event.params.value)
 }
 
 export function handleApproval(event: Approval): void {
-  let owner = event.params.owner.toHexString()
-  let spender = event.params.spender.toHexString()
+  let uniqueId = createUniqueId(event.block.timestamp, event.transaction.hash.toHex())
+  let ownerAddress = event.params.owner.toHexString()
+  let spenderAddress = event.params.spender.toHexString()
 
-  let allowanceId = owner.concat('-').concat(spender)
-    let allowance = WrappedAllowance.load(allowanceId)
-    if (!allowance) {
-      allowance = new WrappedAllowance(allowanceId)
-      allowance.owner = owner
-      allowance.spender = spender
-    }
-    allowance.amount = event.params.value
-    allowance.lastUpdated = event.block.timestamp
-    allowance.save()
+  let allowanceId = ownerAddress.concat('-').concat(spenderAddress)
+  let allowance = Allowance.load(allowanceId)
+  if (!allowance) {
+    allowance = new Allowance(allowanceId)
+    allowance.owner = ownerAddress
+    allowance.spender = spenderAddress
+  }
+  allowance.amount = event.params.value
+  allowance.lastUpdated = event.block.timestamp
+  allowance.save()
 
-    let uniqueId = createUniqueId(event.block.timestamp, event.transaction.hash.toHex())
-    let transaction = new StakingTransaction(uniqueId)
-    transaction.type = "approveWrapped"
-    transaction.user = owner
-    transaction.spender = spender
-    transaction.sflrAmount = event.params.value
-    transaction.flrAmount = BigInt.fromI32(0)
-    transaction.exchangeRate = BigInt.fromI32(0)
-    transaction.timestamp = event.block.timestamp
-    transaction.blockNumber = event.block.number
-    transaction.transactionHash = event.transaction.hash.toHex()
-    transaction.status = "completed"
-    transaction.save()
+  let transaction = new StakingTransaction(uniqueId)
+  transaction.user = getOrCreateAccount(ownerAddress).id
+  transaction.type = "wrappedApproval"
+  transaction.spender = spenderAddress
+  transaction.flrAmount = event.params.value
+  transaction.sflrAmount = BigInt.fromI32(0)
+  transaction.exchangeRate = BigInt.fromI32(0)
+  transaction.timestamp = event.block.timestamp
+  transaction.blockNumber = event.block.number
+  transaction.transactionHash = event.transaction.hash.toHex()
+  transaction.status = "completed"
+  transaction.save()
+
+  let metric = getOrCreateUserMetric(ownerAddress)
+  metric.lastInteractionTime = event.block.timestamp
+  metric.transactionCount = metric.transactionCount.plus(BigInt.fromI32(1))
+  if (metric.firstInteractionTime.equals(BigInt.fromI32(0))) {
+    metric.firstInteractionTime = event.block.timestamp
+  }
+  metric.save()
 }

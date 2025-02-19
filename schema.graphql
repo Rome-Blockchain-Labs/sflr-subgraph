@@ -32,6 +32,7 @@ type UnlockRequest @entity {
 type Account @entity {
   id: ID! # user address
   balance: BigInt!
+  totalWrappedFlr: BigInt!
   totalTransferred: BigInt!
   totalTransferredWrapped: BigInt!
   totalReceived: BigInt!
@@ -63,7 +64,6 @@ type UserMetric @entity {
   currentShares: BigInt!
   totalStaked: BigInt!
   totalUnstaked: BigInt!
-  totalWrappedFlr: BigInt!
   totalRewardsEarned: BigInt!
   lastInteractionTime: BigInt! @index
   transactionCount: BigInt!
