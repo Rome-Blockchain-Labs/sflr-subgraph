@@ -62,8 +62,11 @@ export function getOrCreateAccount(address: string): Account {
   if (!account) {
     account = new Account(address)
     account.balance = BigInt.fromI32(0)
+    account.totalWrappedFlr = BigInt.fromI32(0)
     account.totalTransferred = BigInt.fromI32(0)
+    account.totalTransferredWrapped = BigInt.fromI32(0)
     account.totalReceived = BigInt.fromI32(0)
+    account.totalReceivedWrapped = BigInt.fromI32(0)
     account.lastUpdated = BigInt.fromI32(0)
     account.save()
   }

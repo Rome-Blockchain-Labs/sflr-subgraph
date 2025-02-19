@@ -4,6 +4,7 @@ repository: https://github.com/Rome-Blockchain-Labs/sflr-subgraph.git
 schema:
   file: ./schema.graphql
 dataSources:
+  # Staked FLR
   - kind: ethereum/contract
     name: SFLRContract
     network: flare
@@ -74,3 +75,31 @@ dataSources:
         - event: MintingResumed(address)
           handler: handleMintingResumed
       file: ./src/mappings/sflr.ts
+  # Wrapped FLR
+  - kind: ethereum/contract
+    name: WFLRContract
+    network: flare
+    source:
+      address: "0x1D80c49BbBCd1C0911346656B529DF9E5c2F783d"
+      abi: WFLR
+      startBlock: 23664754
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - StakingTransaction
+        - Account
+      abis:
+        - name: WFLR
+          file: ./abis/WFLR.json
+      eventHandlers:
+        - event: Deposit(indexed address,uint256)
+          handler: handleWrapFLR
+        - event: Withdrawal(indexed address,uint256)
+          handler: handleUnwrapFLR
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleWrappedTransfer
+        - event: Approval(indexed address,indexed address,uint256)
+          handler: handleApproval
+      file: ./src/mappings/wflr.ts
