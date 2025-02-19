@@ -96,7 +96,7 @@ dataSources:
       eventHandlers:
         - event: Deposit(indexed address,uint256)
           handler: handleWrapFLR
-        - event: Withdraw(indexed address,uint256)
+        - event: Withdrawal(indexed address,uint256)
           handler: handleUnwrapFLR
         - event: Transfer(indexed address,indexed address,uint256)
           handler: handleWrappedTransfer
