@@ -103,3 +103,527 @@ dataSources:
         - event: Approval(indexed address,indexed address,uint256)
           handler: handleApproval
       file: ./src/mappings/wflr.ts
+  - kind: ethereum/contract
+    name: kineticProtocol
+    network: flare
+    source:
+      address: "0x291487bec339c2fe5d83dd45f0a15efc9ac45656" # ksFLR
+      abi: ksflr
+      startBlock: 23664754
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - StakingTransaction
+        - Account
+      abis:
+        - name: ksflr
+          file: ./abis/protocols/ksflr.json
+      eventHandlers:
+        - event: Mint(address,uint256,uint256)
+          handler: handleMint
+        - event: Redeem(address,uint256,uint256)
+          handler: handleRedeem
+      file: ./src/mappings/protocols/ksflr.ts
+  - kind: ethereum/contract
+    name: cycloProtocol
+    network: flare
+    source:
+      address: "0x19831cfb53a0dbead9866c43557c1d48dff76567" # cyclo
+      abi: cyclo
+      startBlock: 23664754
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - StakingTransaction
+        - Account
+      abis:
+        - name: cyclo
+          file: ./abis/protocols/cyclo.json
+      eventHandlers:
+        - event: Withdraw(address,address,address,uint256,uint256,uint256,bytes)
+          handler: handleWithdraw
+        - event: Deposit(address,address,uint256,uint256,uint256,bytes)
+          handler: handleDeposit
+      file: ./src/mappings/protocols/cyclo.ts
+  - kind: ethereum/contract
+    name: xdfi
+    network: flare
+    source:
+      address: "0x1b13f3a68e30fe2b9be18ce45ca8550c584892cc" # xdfi
+      abi: xdfi
+      startBlock: 23664754
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - StakingTransaction
+        - Account
+      abis:
+        - name: xdfi
+          file: ./abis/protocols/xdfi.json
+      eventHandlers:
+        - event: BalanceWithdrawn(indexed address,uint256)
+          handler: handleWithdraw
+        - event: DepositAdded(indexed address,uint256)
+          handler: handleDeposit
+      file: ./src/mappings/protocols/xdfi.ts
+  - kind: ethereum/contract
+    name: raindex
+    network: flare
+    source:
+      address: "0xcee8cd002f151a536394e564b84076c41bbbcd4d" # raindex
+      abi: raindex
+      startBlock: 23664754
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - StakingTransaction
+        - Account
+      abis:
+        - name: raindex
+          file: ./abis/protocols/raindex.json
+      eventHandlers:
+        - event: Withdraw(address,address,uint256,uint256,uint256)
+          handler: handleWithdraw
+        - event: Deposit(address,address,uint256,uint256)
+          handler: handleDeposit
+      file: ./src/mappings/protocols/raindex.ts
+  - kind: ethereum/contract
+    name: sparkdex
+    network: flare
+    source:
+      address: "0xc9baBa3F36ccaa54675dEECC327Ec7Eaa48CB97d" # sparkdex1
+      abi: sparkdex
+      startBlock: 23664754
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - StakingTransaction
+        - Account
+      abis:
+        - name: sparkdex
+          file: ./abis/protocols/sparkdex.json
+      eventHandlers:
+        - event: Swap(indexed address,indexed address,int256,int256,uint160,uint128,int24)
+          handler: handleSwap
+      file: ./src/mappings/protocols/sparkdex.ts
+  - kind: ethereum/contract
+    name: sparkdex2
+    network: flare
+    source:
+      address: "0x9b35c9185659c0536dc0d8c674ce722b7d3859ba" # sparkdex2
+      abi: sparkdex
+      startBlock: 23664754
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - StakingTransaction
+        - Account
+      abis:
+        - name: sparkdex
+          file: ./abis/protocols/sparkdex.json
+      eventHandlers:
+        - event: Swap(indexed address,indexed address,int256,int256,uint160,uint128,int24)
+          handler: handleSwap
+      file: ./src/mappings/protocols/sparkdex.ts
+  - kind: ethereum/contract
+    name: sparkdex3
+    network: flare
+    source:
+      address: "0x68e9c7e90c159cff4f7c257d7c0b3fb1fa1f8ef5" # sparkdex3
+      abi: sparkdex
+      startBlock: 23664754
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - StakingTransaction
+        - Account
+      abis:
+        - name: sparkdex
+          file: ./abis/protocols/sparkdex.json
+      eventHandlers:
+        - event: Swap(indexed address,indexed address,int256,int256,uint160,uint128,int24)
+          handler: handleSwap
+      file: ./src/mappings/protocols/sparkdex.ts
+  - kind: ethereum/contract
+    name: sparkdex4
+    network: flare
+    source:
+      address: "0x38e386c7237140ca809a36162a652748fec51492" # sparkdex4
+      abi: sparkdex
+      startBlock: 23664754
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - StakingTransaction
+        - Account
+      abis:
+        - name: sparkdex
+          file: ./abis/protocols/sparkdex.json
+      eventHandlers:
+        - event: Swap(indexed address,indexed address,int256,int256,uint160,uint128,int24)
+          handler: handleSwap
+      file: ./src/mappings/protocols/sparkdex.ts
+  - kind: ethereum/contract
+    name: sparkdex5
+    network: flare
+    source:
+      address: "0x4f53ac9fce3e9739b3e589015888a683c24fac04" # sparkdex5
+      abi: sparkdex
+      startBlock: 23664754
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - StakingTransaction
+        - Account
+      abis:
+        - name: sparkdex
+          file: ./abis/protocols/sparkdex.json
+      eventHandlers:
+        - event: Swap(indexed address,indexed address,int256,int256,uint160,uint128,int24)
+          handler: handleSwap
+      file: ./src/mappings/protocols/sparkdex.ts
+  - kind: ethereum/contract
+    name: sparkdex6
+    network: flare
+    source:
+      address: "0x1007cd7a723ca046a11aa0f58db2923522aba091" # sparkdex6
+      abi: sparkdex
+      startBlock: 23664754
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - StakingTransaction
+        - Account
+      abis:
+        - name: sparkdex
+          file: ./abis/protocols/sparkdex.json
+      eventHandlers:
+        - event: Swap(indexed address,indexed address,int256,int256,uint160,uint128,int24)
+          handler: handleSwap
+      file: ./src/mappings/protocols/sparkdex.ts
+  - kind: ethereum/contract
+    name: sparkdex7
+    network: flare
+    source:
+      address: "0xa6ed1a04b9b6b0a6cf3926510546baf5bbe44e5e" # sparkdex7
+      abi: sparkdex
+      startBlock: 23664754
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - StakingTransaction
+        - Account
+      abis:
+        - name: sparkdex
+          file: ./abis/protocols/sparkdex.json
+      eventHandlers:
+        - event: Swap(indexed address,indexed address,int256,int256,uint160,uint128,int24)
+          handler: handleSwap
+      file: ./src/mappings/protocols/sparkdex.ts
+  - kind: ethereum/contract
+    name: sparkdex8
+    network: flare
+    source:
+      address: "0x832e80db52acb962bd2ebdab85d678deb6863b0a" # sparkdex8
+      abi: sparkdex
+      startBlock: 23664754
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - StakingTransaction
+        - Account
+      abis:
+        - name: sparkdex
+          file: ./abis/protocols/sparkdex.json
+      eventHandlers:
+        - event: Swap(indexed address,indexed address,int256,int256,uint160,uint128,int24)
+          handler: handleSwap
+      file: ./src/mappings/protocols/sparkdex.ts
+  - kind: ethereum/contract
+    name: sparkdex9
+    network: flare
+    source:
+      address: "0x060b54a68581ddff1285c8d1f9b78898d63a46c7" # sparkdex9
+      abi: sparkdex
+      startBlock: 23664754
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - StakingTransaction
+        - Account
+      abis:
+        - name: sparkdex
+          file: ./abis/protocols/sparkdex.json
+      eventHandlers:
+        - event: Swap(indexed address,indexed address,int256,int256,uint160,uint128,int24)
+          handler: handleSwap
+      file: ./src/mappings/protocols/sparkdex.ts
+  - kind: ethereum/contract
+    name: sparkdex10
+    network: flare
+    source:
+      address: "0x91dad908a9cd0c07d46b84a0322890bafa4c5d9a" # sparkdex10
+      abi: sparkdex
+      startBlock: 23664754
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - StakingTransaction
+        - Account
+      abis:
+        - name: sparkdex
+          file: ./abis/protocols/sparkdex.json
+      eventHandlers:
+        - event: Swap(indexed address,indexed address,int256,int256,uint160,uint128,int24)
+          handler: handleSwap
+      file: ./src/mappings/protocols/sparkdex.ts
+  - kind: ethereum/contract
+    name: sparkdex11
+    network: flare
+    source:
+      address: "0x0ca446ef8bbcd035b23ba0e92bf1a894d023c70c" # sparkdex11
+      abi: sparkdex
+      startBlock: 23664754
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - StakingTransaction
+        - Account
+      abis:
+        - name: sparkdex
+          file: ./abis/protocols/sparkdex.json
+      eventHandlers:
+        - event: Swap(indexed address,indexed address,int256,int256,uint160,uint128,int24)
+          handler: handleSwap
+      file: ./src/mappings/protocols/sparkdex.ts
+  - kind: ethereum/contract
+    name: sparkdex12
+    network: flare
+    source:
+      address: "0xdfcb4b7bd2fa69eb398ecf5623d696f0e871a44c" # sparkdex12
+      abi: sparkdex
+      startBlock: 23664754
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - StakingTransaction
+        - Account
+      abis:
+        - name: sparkdex
+          file: ./abis/protocols/sparkdex.json
+      eventHandlers:
+        - event: Swap(indexed address,indexed address,int256,int256,uint160,uint128,int24)
+          handler: handleSwap
+      file: ./src/mappings/protocols/sparkdex.ts
+  - kind: ethereum/contract
+    name: sparkdex13
+    network: flare
+    source:
+      address: "0x2357a0ab1ba654473b1f518845bd406ac32b3b99" # sparkdex13
+      abi: sparkdex
+      startBlock: 23664754
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - StakingTransaction
+        - Account
+      abis:
+        - name: sparkdex
+          file: ./abis/protocols/sparkdex.json
+      eventHandlers:
+        - event: Swap(indexed address,indexed address,int256,int256,uint160,uint128,int24)
+          handler: handleSwap
+      file: ./src/mappings/protocols/sparkdex.ts
+  - kind: ethereum/contract
+    name: someotherswap
+    network: flare
+    source:
+      address: "0x9A3215f8B0d128816F75175c9fD74e7ebbD987DA" # another swap contract?
+      abi: sparkdex
+      startBlock: 23664754
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - StakingTransaction
+        - Account
+      abis:
+        - name: sparkdex
+          file: ./abis/protocols/sparkdex.json
+      eventHandlers:
+        - event: Swap(indexed address,indexed address,int256,int256,uint160,uint128,int24)
+          handler: handleSwap
+      file: ./src/mappings/protocols/sparkdex.ts
+  - kind: ethereum/contract
+    name: blazeswap
+    network: flare
+    source:
+      address: "0x3f50f880041521738fa88c46cdf7e0d8eeb11aa2" # blazeswap
+      abi: blazeswap
+      startBlock: 23664754
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - StakingTransaction
+        - Account
+      abis:
+        - name: blazeswap
+          file: ./abis/protocols/blazeswap.json
+      eventHandlers:
+        - event: Mint(address,indexed address,indexed int24,indexed int24,uint128,uint256,uint256)
+          handler: handleMint
+        - event: Swap(indexed address,indexed address,int256,int256,uint160,uint128,int24)
+          handler: handleSwap
+      file: ./src/mappings/protocols/blazeswap.ts
+  - kind: ethereum/contract
+    name: enosys1
+    network: flare
+    source:
+      address: "0x5d03162f2623D98f21f30DD5024d0e6E243b0e3a" # enosys1
+      abi: enosys
+      startBlock: 23664754
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - StakingTransaction
+        - Account
+      abis:
+        - name: enosys
+          file: ./abis/protocols/blazeswap.json
+      eventHandlers:
+        - event: Mint(address,indexed address,indexed int24,indexed int24,uint128,uint256,uint256)
+          handler: handleMint
+        - event: Swap(indexed address,indexed address,int256,int256,uint160,uint128,int24)
+          handler: handleSwap
+      file: ./src/mappings/protocols/blazeswap.ts
+  - kind: ethereum/contract
+    name: enosys2
+    network: flare
+    source:
+      address: "0x4dDC7854E0d3008D2B85e5Ed1529D726711ED05C" # enosys2
+      abi: enosys
+      startBlock: 23664754
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - StakingTransaction
+        - Account
+      abis:
+        - name: enosys
+          file: ./abis/protocols/blazeswap.json
+      eventHandlers:
+        - event: Mint(address,indexed address,indexed int24,indexed int24,uint128,uint256,uint256)
+          handler: handleMint
+        - event: Swap(indexed address,indexed address,int256,int256,uint160,uint128,int24)
+          handler: handleSwap
+      file: ./src/mappings/protocols/blazeswap.ts
+  - kind: ethereum/contract
+    name: enosys3
+    network: flare
+    source:
+      address: "0x942a493FE65172e42D276d07a612b678914EA402" # enosys3
+      abi: enosys
+      startBlock: 23664754
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - StakingTransaction
+        - Account
+      abis:
+        - name: enosys
+          file: ./abis/protocols/blazeswap.json
+      eventHandlers:
+        - event: Mint(address,indexed address,indexed int24,indexed int24,uint128,uint256,uint256)
+          handler: handleMint
+        - event: Swap(indexed address,indexed address,int256,int256,uint160,uint128,int24)
+          handler: handleSwap
+      file: ./src/mappings/protocols/blazeswap.ts
+  - kind: ethereum/contract
+    name: enosys4
+    network: flare
+    source:
+      address: "0x46Ff03Da3081e5976eEFF542Cdaa6453D2dD1286" # enosys4
+      abi: enosys
+      startBlock: 23664754
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - StakingTransaction
+        - Account
+      abis:
+        - name: enosys
+          file: ./abis/protocols/blazeswap.json
+      eventHandlers:
+        - event: Mint(address,indexed address,indexed int24,indexed int24,uint128,uint256,uint256)
+          handler: handleMint
+        - event: Swap(indexed address,indexed address,int256,int256,uint160,uint128,int24)
+          handler: handleSwap
+      file: ./src/mappings/protocols/blazeswap.ts
+  - kind: ethereum/contract
+    name: enosys5
+    network: flare
+    source:
+      address: "0x25B4f3930934F0A3CbB885C624EcEe75a2917144" # enosys5
+      abi: enosys
+      startBlock: 23664754
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - StakingTransaction
+        - Account
+      abis:
+        - name: enosys
+          file: ./abis/protocols/blazeswap.json
+      eventHandlers:
+        - event: Mint(address,indexed address,indexed int24,indexed int24,uint128,uint256,uint256)
+          handler: handleMint
+        - event: Swap(indexed address,indexed address,int256,int256,uint160,uint128,int24)
+          handler: handleSwap
+      file: ./src/mappings/protocols/blazeswap.ts

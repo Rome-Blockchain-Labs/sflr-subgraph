@@ -17,6 +17,33 @@ type StakingTransaction @entity {
   spender: String @index
 }
 
+type ProtocolTransaction @entity {
+  id: ID!
+  user: Account! @index
+  type: String!
+  flrAmount: BigInt!
+  timestamp: BigInt! @index
+  blockNumber: BigInt! @index
+  transactionHash: String! @index
+  status: String!
+  fromAddress: String @index
+  toAddress: String @index
+}
+
+type SwapTransaction @entity {
+  id: ID!
+  user: Account! @index
+  type: String!
+  fromAmount: BigInt!
+  toAmount: BigInt!
+  timestamp: BigInt! @index
+  blockNumber: BigInt! @index
+  transactionHash: String! @index
+  status: String!
+  fromAddress: String @index
+  toAddress: String @index
+}
+
 type UnlockRequest @entity {
   id: ID!
   user: Account! @index  #
