@@ -1,6 +1,6 @@
 import {
   Swap
-} from "../../../generated/swap/swap"
+} from "../../../generated/sparkdex/sparkdex"
 import {
   SwapTransaction,
 } from "../../../generated/schema"
