@@ -14,7 +14,7 @@ dataSources:
       startBlock: 23664754
     mapping:
       kind: ethereum/events
-      apiVersion: 0.0.9
+      apiVersion: 0.0.10
       language: wasm/assemblyscript
       entities:
         - ExchangeRate
