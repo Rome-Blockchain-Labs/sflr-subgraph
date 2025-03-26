@@ -1,13 +1,12 @@
 #!/bin/bash
 CONTAINER_ID=$1
+CHAIN_GROWTH_RATE=2  # blocks per second
 
 # Get blocks without Docker timestamps to avoid parsing issues
 first_block_line=$(docker logs ${CONTAINER_ID} 2>&1 | grep -m1 "Applying.*block_number:")
 first_block=$(echo "$first_block_line" | grep -Po "block_number: \K[0-9]+" || echo "23664754")
-
 last_block_line=$(docker logs --tail 1000 ${CONTAINER_ID} 2>&1 | grep "Applying.*block_number:" | tail -1)
 last_block=$(echo "$last_block_line" | grep -Po "block_number: \K[0-9]+" || echo "$first_block")
-
 latest=$(docker logs --tail 100 ${CONTAINER_ID} 2>&1 | grep -Po "latest_block_head: \K\d+" | tail -1 || echo "38704713")
 
 # Use container runtime instead of log timestamps
@@ -26,7 +25,19 @@ blocks_processed=$((last_block - first_block))
 synced=$((last_block - start_block))
 speed=$(echo "scale=2; $blocks_processed / $elapsed" | bc 2>/dev/null || echo "0")
 remaining=$((latest - last_block))
-eta_seconds=$(echo "if($speed > 0) $remaining / $speed else 999 * 3600" | bc -l 2>/dev/null || echo "3596400")
+
+# Account for chain growth during sync
+if (( $(echo "$speed > $CHAIN_GROWTH_RATE" | bc -l) )); then
+  # We're syncing faster than chain growth
+  effective_speed=$(echo "scale=2; $speed - $CHAIN_GROWTH_RATE" | bc)
+  eta_seconds=$(echo "if($effective_speed > 0) $remaining / $effective_speed else 999 * 3600" | bc -l 2>/dev/null || echo "3596400")
+  catchup_note="Will catch up (net gain: $(echo "scale=2; $speed - $CHAIN_GROWTH_RATE" | bc) blk/s)"
+else
+  # We're syncing slower than chain growth - will never catch up
+  eta_seconds=9999999
+  catchup_note="WARNING: Sync slower than chain growth, will never catch up"
+fi
+
 eta_hrs=$(echo "scale=1; $eta_seconds / 3600" | bc)
 eta_days=$(echo "scale=1; $eta_seconds / 86400" | bc)
 total_days=$(echo "scale=1; $elapsed_days + $eta_days" | bc)
@@ -40,3 +51,5 @@ printf "Remaining: %d, Progress: %.2f%%, Elapsed: %.1f days (%.1f hrs)\n" \
   $remaining $progress $elapsed_days $elapsed_hrs
 printf "ETA: %.1f days (%.1f hrs), Total time: %.1f days (%.1f hrs)\n" \
   $eta_days $eta_hrs $total_days $total_hrs
+printf "Chain growth: %d blk/s, %s\n" \
+  $CHAIN_GROWTH_RATE "$catchup_note"
