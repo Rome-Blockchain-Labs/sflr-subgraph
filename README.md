@@ -8,9 +8,13 @@ a blockchain indexing service for the flare network.
 ssh root@helhetz01.romenet.io
 cd /opt/sceptre/sflr-subgraph
 docker compose -f docker-compose.prod.yaml up -d
+
+# dev graph in own folder instead of using git worktrees
+cd /opt/sceptre/sflr-subgraph-dev
+docker compose -f docker-compose.dev.yaml up -d
 ```
 
-the subgraph performs graceful updates when the version in docker-compose.yaml is incremented.
+the subgraph performs graceful updates when the version in docker-compose.yaml is incremented and volume kept.
 
 ## limitations
 
