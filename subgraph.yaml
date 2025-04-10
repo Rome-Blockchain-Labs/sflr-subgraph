@@ -493,7 +493,7 @@ dataSources:
     name: blazeswap
     network: flare
     source:
-      address: "0x3f50f880041521738fa88c46cdf7e0d8eeb11aa2" # blazeswap
+      address: "0x3F50F880041521738fa88C46cDF7e0d8Eeb11Aa2" # blazeswap
       abi: blazeswap
       startBlock: 23664754
     mapping:
@@ -507,9 +507,9 @@ dataSources:
         - name: blazeswap
           file: ./abis/protocols/blazeswap.json
       eventHandlers:
-        - event: Mint(address,indexed address,indexed int24,indexed int24,uint128,uint256,uint256)
+        - event: Mint(indexed address,uint256,uint256)
           handler: handleMint
-        - event: Swap(indexed address,indexed address,int256,int256,uint160,uint128,int24)
+        - event: Swap(indexed address,uint256,uint256,uint256,uint256,indexed address)
           handler: handleSwap
       file: ./src/mappings/protocols/blazeswap.ts
   - kind: ethereum/contract
@@ -528,13 +528,13 @@ dataSources:
         - Account
       abis:
         - name: enosys
-          file: ./abis/protocols/blazeswap.json
+          file: ./abis/protocols/enosys.json
       eventHandlers:
         - event: Mint(address,indexed address,indexed int24,indexed int24,uint128,uint256,uint256)
           handler: handleMint
         - event: Swap(indexed address,indexed address,int256,int256,uint160,uint128,int24)
           handler: handleSwap
-      file: ./src/mappings/protocols/blazeswap.ts
+      file: ./src/mappings/protocols/enosys.ts
   - kind: ethereum/contract
     name: enosys2
     network: flare
@@ -551,13 +551,13 @@ dataSources:
         - Account
       abis:
         - name: enosys
-          file: ./abis/protocols/blazeswap.json
+          file: ./abis/protocols/enosys.json
       eventHandlers:
         - event: Mint(address,indexed address,indexed int24,indexed int24,uint128,uint256,uint256)
           handler: handleMint
         - event: Swap(indexed address,indexed address,int256,int256,uint160,uint128,int24)
           handler: handleSwap
-      file: ./src/mappings/protocols/blazeswap.ts
+      file: ./src/mappings/protocols/enosys.ts
   - kind: ethereum/contract
     name: enosys3
     network: flare
@@ -574,13 +574,13 @@ dataSources:
         - Account
       abis:
         - name: enosys
-          file: ./abis/protocols/blazeswap.json
+          file: ./abis/protocols/enosys.json
       eventHandlers:
         - event: Mint(address,indexed address,indexed int24,indexed int24,uint128,uint256,uint256)
           handler: handleMint
         - event: Swap(indexed address,indexed address,int256,int256,uint160,uint128,int24)
           handler: handleSwap
-      file: ./src/mappings/protocols/blazeswap.ts
+      file: ./src/mappings/protocols/enosys.ts
   - kind: ethereum/contract
     name: enosys4
     network: flare
@@ -597,13 +597,13 @@ dataSources:
         - Account
       abis:
         - name: enosys
-          file: ./abis/protocols/blazeswap.json
+          file: ./abis/protocols/enosys.json
       eventHandlers:
         - event: Mint(address,indexed address,indexed int24,indexed int24,uint128,uint256,uint256)
           handler: handleMint
         - event: Swap(indexed address,indexed address,int256,int256,uint160,uint128,int24)
           handler: handleSwap
-      file: ./src/mappings/protocols/blazeswap.ts
+      file: ./src/mappings/protocols/enosys.ts
   - kind: ethereum/contract
     name: enosys5
     network: flare
@@ -620,10 +620,73 @@ dataSources:
         - Account
       abis:
         - name: enosys
-          file: ./abis/protocols/blazeswap.json
+          file: ./abis/protocols/enosys.json
       eventHandlers:
         - event: Mint(address,indexed address,indexed int24,indexed int24,uint128,uint256,uint256)
           handler: handleMint
         - event: Swap(indexed address,indexed address,int256,int256,uint160,uint128,int24)
           handler: handleSwap
-      file: ./src/mappings/protocols/blazeswap.ts
+      file: ./src/mappings/protocols/enosys.ts
+  - kind: ethereum/contract
+    name: enosys6
+    network: flare
+    source:
+      address: "0x7E8EB77Feb4b3Fe2C58B493DF6Ce38875806bebb" # other type of enosys
+      abi: enosys2
+      startBlock: 23664754
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - StakingTransaction
+        - Account
+      abis:
+        - name: enosys2
+          file: ./abis/protocols/enosys2.json
+      eventHandlers:
+        - event: Swap(indexed address,uint256,uint256,uint256,uint256,indexed address)
+          handler: handleSwap
+      file: ./src/mappings/protocols/enosys2.ts
+  - kind: ethereum/contract
+    name: unknown
+    network: flare
+    source:
+      address: "0x2DBEc0d3812AF232Ae185e84B9cf172f34A9aCb9"
+      abi: enosys
+      startBlock: 23664754
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - StakingTransaction
+        - Account
+      abis:
+        - name: enosys
+          file: ./abis/protocols/enosys.json
+      eventHandlers:
+        - event: Swap(indexed address,indexed address,int256,int256,uint160,uint128,int24)
+          handler: handleSwap
+      file: ./src/mappings/protocols/enosys.ts
+  - kind: ethereum/contract
+    name: unknown2
+    network: flare
+    source:
+      address: "0x623fe69b78C6bBAa71BcCE2aE2c7deA57CFc5Ea3"
+      abi: enosys
+      startBlock: 23664754
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - StakingTransaction
+        - Account
+      abis:
+        - name: enosys
+          file: ./abis/protocols/enosys.json
+      eventHandlers:
+        - event: Swap(indexed address,indexed address,int256,int256,uint160,uint128,int24)
+          handler: handleSwap
+      file: ./src/mappings/protocols/enosys.ts
