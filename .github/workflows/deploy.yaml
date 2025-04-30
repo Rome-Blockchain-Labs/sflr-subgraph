@@ -95,7 +95,7 @@ jobs:
             echo "SERVER_HOST=helhetz02.romenet.io" >> $GITHUB_ENV
           fi
           
-          echo "DEPLOY_PATH=/opt/sceptre/\${SUBGRAPH_NAME}" >> $GITHUB_ENV
+          echo "DEPLOY_PATH=/home/sceptre/\${SUBGRAPH_NAME}" >> $GITHUB_ENV
           echo "SSH_USER=sceptre" >> $GITHUB_ENV
 
       - uses: webfactory/ssh-agent@v0.8.0
