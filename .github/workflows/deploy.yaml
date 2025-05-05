@@ -112,7 +112,7 @@ jobs:
               restart: always
               pull_policy: always
               ports:
-                - '${{ env.PORTS_PREFIX }}001:5001'
+                - '${{ env.PORTS_PREFIX }}051:5001'
               volumes:
                 - ipfs_staging:/export
                 - ipfs_data:/data/ipfs
