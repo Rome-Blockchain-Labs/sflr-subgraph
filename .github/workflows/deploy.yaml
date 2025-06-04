@@ -147,7 +147,7 @@ jobs:
               ports:
                 - '${{ env.PORTS_PREFIX }}000:8000'
                 - '${{ env.PORTS_PREFIX }}001:8001'
-                - '${{ env.PORTS_PREFIX }}020:8020'
+                # - '${{ env.PORTS_PREFIX }}020:8020' # admin disabled
                 - '${{ env.PORTS_PREFIX }}030:8030'
                 - '${{ env.PORTS_PREFIX }}040:8040'
               depends_on:
