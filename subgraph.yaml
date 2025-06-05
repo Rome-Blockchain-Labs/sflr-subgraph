@@ -171,6 +171,10 @@ dataSources:
           handler: handleWithdraw
         - event: DepositAdded(indexed address,uint256)
           handler: handleDeposit
+        - event: CurrencyDepositAdded(bool,indexed address,uint256)
+          handler: handleCurrencyDeposit
+        - event: CurrencyBalanceWithdrawn(bool,indexed address,uint256)
+          handler: handleCurrencyWithdraw
       file: ./src/mappings/protocols/xdfi.ts
   - kind: ethereum/contract
     name: raindex
@@ -215,6 +219,10 @@ dataSources:
       eventHandlers:
         - event: Swap(indexed address,indexed address,int256,int256,uint160,uint128,int24)
           handler: handleSwap
+        - event: Mint(address,indexed address,indexed int24,indexed int24,uint128,uint256,uint256)
+          handler: handleMint
+        - event: Collect(indexed address,address,indexed int24,indexed int24,uint128,uint128)
+          handler: handleCollect
       file: ./src/mappings/protocols/sparkdex.ts
   - kind: ethereum/contract
     name: sparkdex2
@@ -236,6 +244,10 @@ dataSources:
       eventHandlers:
         - event: Swap(indexed address,indexed address,int256,int256,uint160,uint128,int24)
           handler: handleSwap
+        - event: Mint(address,indexed address,indexed int24,indexed int24,uint128,uint256,uint256)
+          handler: handleMint
+        - event: Collect(indexed address,address,indexed int24,indexed int24,uint128,uint128)
+          handler: handleCollect
       file: ./src/mappings/protocols/sparkdex.ts
   - kind: ethereum/contract
     name: sparkdex3
@@ -257,6 +269,10 @@ dataSources:
       eventHandlers:
         - event: Swap(indexed address,indexed address,int256,int256,uint160,uint128,int24)
           handler: handleSwap
+        - event: Mint(address,indexed address,indexed int24,indexed int24,uint128,uint256,uint256)
+          handler: handleMint
+        - event: Collect(indexed address,address,indexed int24,indexed int24,uint128,uint128)
+          handler: handleCollect
       file: ./src/mappings/protocols/sparkdex.ts
   - kind: ethereum/contract
     name: sparkdex4
@@ -278,6 +294,10 @@ dataSources:
       eventHandlers:
         - event: Swap(indexed address,indexed address,int256,int256,uint160,uint128,int24)
           handler: handleSwap
+        - event: Mint(address,indexed address,indexed int24,indexed int24,uint128,uint256,uint256)
+          handler: handleMint
+        - event: Collect(indexed address,address,indexed int24,indexed int24,uint128,uint128)
+          handler: handleCollect
       file: ./src/mappings/protocols/sparkdex.ts
   - kind: ethereum/contract
     name: sparkdex5
@@ -299,6 +319,10 @@ dataSources:
       eventHandlers:
         - event: Swap(indexed address,indexed address,int256,int256,uint160,uint128,int24)
           handler: handleSwap
+        - event: Mint(address,indexed address,indexed int24,indexed int24,uint128,uint256,uint256)
+          handler: handleMint
+        - event: Collect(indexed address,address,indexed int24,indexed int24,uint128,uint128)
+          handler: handleCollect
       file: ./src/mappings/protocols/sparkdex.ts
   - kind: ethereum/contract
     name: sparkdex6
@@ -320,6 +344,10 @@ dataSources:
       eventHandlers:
         - event: Swap(indexed address,indexed address,int256,int256,uint160,uint128,int24)
           handler: handleSwap
+        - event: Mint(address,indexed address,indexed int24,indexed int24,uint128,uint256,uint256)
+          handler: handleMint
+        - event: Collect(indexed address,address,indexed int24,indexed int24,uint128,uint128)
+          handler: handleCollect
       file: ./src/mappings/protocols/sparkdex.ts
   - kind: ethereum/contract
     name: sparkdex7
@@ -341,6 +369,10 @@ dataSources:
       eventHandlers:
         - event: Swap(indexed address,indexed address,int256,int256,uint160,uint128,int24)
           handler: handleSwap
+        - event: Mint(address,indexed address,indexed int24,indexed int24,uint128,uint256,uint256)
+          handler: handleMint
+        - event: Collect(indexed address,address,indexed int24,indexed int24,uint128,uint128)
+          handler: handleCollect
       file: ./src/mappings/protocols/sparkdex.ts
   - kind: ethereum/contract
     name: sparkdex8
@@ -362,6 +394,10 @@ dataSources:
       eventHandlers:
         - event: Swap(indexed address,indexed address,int256,int256,uint160,uint128,int24)
           handler: handleSwap
+        - event: Mint(address,indexed address,indexed int24,indexed int24,uint128,uint256,uint256)
+          handler: handleMint
+        - event: Collect(indexed address,address,indexed int24,indexed int24,uint128,uint128)
+          handler: handleCollect
       file: ./src/mappings/protocols/sparkdex.ts
   - kind: ethereum/contract
     name: sparkdex9
@@ -383,6 +419,10 @@ dataSources:
       eventHandlers:
         - event: Swap(indexed address,indexed address,int256,int256,uint160,uint128,int24)
           handler: handleSwap
+        - event: Mint(address,indexed address,indexed int24,indexed int24,uint128,uint256,uint256)
+          handler: handleMint
+        - event: Collect(indexed address,address,indexed int24,indexed int24,uint128,uint128)
+          handler: handleCollect
       file: ./src/mappings/protocols/sparkdex.ts
   - kind: ethereum/contract
     name: sparkdex10
@@ -404,6 +444,10 @@ dataSources:
       eventHandlers:
         - event: Swap(indexed address,indexed address,int256,int256,uint160,uint128,int24)
           handler: handleSwap
+        - event: Mint(address,indexed address,indexed int24,indexed int24,uint128,uint256,uint256)
+          handler: handleMint
+        - event: Collect(indexed address,address,indexed int24,indexed int24,uint128,uint128)
+          handler: handleCollect
       file: ./src/mappings/protocols/sparkdex.ts
   - kind: ethereum/contract
     name: sparkdex11
@@ -425,6 +469,10 @@ dataSources:
       eventHandlers:
         - event: Swap(indexed address,indexed address,int256,int256,uint160,uint128,int24)
           handler: handleSwap
+        - event: Mint(address,indexed address,indexed int24,indexed int24,uint128,uint256,uint256)
+          handler: handleMint
+        - event: Collect(indexed address,address,indexed int24,indexed int24,uint128,uint128)
+          handler: handleCollect
       file: ./src/mappings/protocols/sparkdex.ts
   - kind: ethereum/contract
     name: sparkdex12
@@ -446,6 +494,10 @@ dataSources:
       eventHandlers:
         - event: Swap(indexed address,indexed address,int256,int256,uint160,uint128,int24)
           handler: handleSwap
+        - event: Mint(address,indexed address,indexed int24,indexed int24,uint128,uint256,uint256)
+          handler: handleMint
+        - event: Collect(indexed address,address,indexed int24,indexed int24,uint128,uint128)
+          handler: handleCollect
       file: ./src/mappings/protocols/sparkdex.ts
   - kind: ethereum/contract
     name: sparkdex13
@@ -467,6 +519,10 @@ dataSources:
       eventHandlers:
         - event: Swap(indexed address,indexed address,int256,int256,uint160,uint128,int24)
           handler: handleSwap
+        - event: Mint(address,indexed address,indexed int24,indexed int24,uint128,uint256,uint256)
+          handler: handleMint
+        - event: Collect(indexed address,address,indexed int24,indexed int24,uint128,uint128)
+          handler: handleCollect
       file: ./src/mappings/protocols/sparkdex.ts
   - kind: ethereum/contract
     name: someotherswap
@@ -488,6 +544,10 @@ dataSources:
       eventHandlers:
         - event: Swap(indexed address,indexed address,int256,int256,uint160,uint128,int24)
           handler: handleSwap
+        - event: Mint(address,indexed address,indexed int24,indexed int24,uint128,uint256,uint256)
+          handler: handleMint
+        - event: Collect(indexed address,address,indexed int24,indexed int24,uint128,uint128)
+          handler: handleCollect
       file: ./src/mappings/protocols/sparkdex.ts
   - kind: ethereum/contract
     name: blazeswap
@@ -532,6 +592,8 @@ dataSources:
       eventHandlers:
         - event: Mint(address,indexed address,indexed int24,indexed int24,uint128,uint256,uint256)
           handler: handleMint
+        - event: Collect(indexed address,address,indexed int24,indexed int24,uint128,uint128)
+          handler: handleCollect
         - event: Swap(indexed address,indexed address,int256,int256,uint160,uint128,int24)
           handler: handleSwap
       file: ./src/mappings/protocols/enosys.ts
@@ -555,6 +617,8 @@ dataSources:
       eventHandlers:
         - event: Mint(address,indexed address,indexed int24,indexed int24,uint128,uint256,uint256)
           handler: handleMint
+        - event: Collect(indexed address,address,indexed int24,indexed int24,uint128,uint128)
+          handler: handleCollect
         - event: Swap(indexed address,indexed address,int256,int256,uint160,uint128,int24)
           handler: handleSwap
       file: ./src/mappings/protocols/enosys.ts
@@ -578,6 +642,8 @@ dataSources:
       eventHandlers:
         - event: Mint(address,indexed address,indexed int24,indexed int24,uint128,uint256,uint256)
           handler: handleMint
+        - event: Collect(indexed address,address,indexed int24,indexed int24,uint128,uint128)
+          handler: handleCollect
         - event: Swap(indexed address,indexed address,int256,int256,uint160,uint128,int24)
           handler: handleSwap
       file: ./src/mappings/protocols/enosys.ts
@@ -601,6 +667,8 @@ dataSources:
       eventHandlers:
         - event: Mint(address,indexed address,indexed int24,indexed int24,uint128,uint256,uint256)
           handler: handleMint
+        - event: Collect(indexed address,address,indexed int24,indexed int24,uint128,uint128)
+          handler: handleCollect
         - event: Swap(indexed address,indexed address,int256,int256,uint160,uint128,int24)
           handler: handleSwap
       file: ./src/mappings/protocols/enosys.ts
@@ -624,6 +692,8 @@ dataSources:
       eventHandlers:
         - event: Mint(address,indexed address,indexed int24,indexed int24,uint128,uint256,uint256)
           handler: handleMint
+        - event: Collect(indexed address,address,indexed int24,indexed int24,uint128,uint128)
+          handler: handleCollect
         - event: Swap(indexed address,indexed address,int256,int256,uint160,uint128,int24)
           handler: handleSwap
       file: ./src/mappings/protocols/enosys.ts
