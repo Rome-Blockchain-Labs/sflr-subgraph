@@ -1,6 +1,7 @@
 import {
   Mint,
-  Swap
+  Swap,
+  Collect
 } from "../../../generated/enosys1/enosys"
 import {
   ProtocolTransaction,
@@ -35,6 +36,22 @@ export function handleSwap(event: Swap): void {
   transaction.type = "swap"
   transaction.fromAmount = event.params.amount0
   transaction.toAmount = event.params.amount1
+  transaction.timestamp = event.block.timestamp
+  transaction.blockNumber = event.block.number
+  transaction.transactionHash = event.transaction.hash.toHex()
+  transaction.status = "completed"
+  transaction.save()
+}
+
+export function handleCollect(event: Collect): void {
+  let uniqueId = createUniqueId(event.block.timestamp, event.transaction.hash.toHex())
+  let userAddress = event.params.owner.toHexString()
+
+  let transaction = new ProtocolTransaction(uniqueId)
+  transaction.user = getOrCreateAccount(userAddress).id
+  transaction.type = "sparkdexWithdraw"
+  transaction.fromAddress = userAddress
+  transaction.flrAmount = event.params.amount0
   transaction.timestamp = event.block.timestamp
   transaction.blockNumber = event.block.number
   transaction.transactionHash = event.transaction.hash.toHex()
