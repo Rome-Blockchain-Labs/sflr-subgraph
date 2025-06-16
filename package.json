@@ -7,11 +7,12 @@
     "create-local": "graph create --node http://localhost:18020/ sflr-subgraph",
     "remove-local": "graph remove --node http://localhost:18020/ sflr-subgraph",
     "deploy-local": "graph deploy --node http://localhost:18020/ --ipfs http://localhost:15001 sflr-subgraph",
+    "deploy:goldsky": "graph deploy --node https://api.thegraph.com/deploy/ --ipfs https://api.thegraph.com/ipfs/ romeblockchain/sflr",
     "test": "graph test"
   },
   "dependencies": {
-    "@graphprotocol/graph-cli": "^0.91.1",
-    "@graphprotocol/graph-ts": "^0.36.0"
+    "@graphprotocol/graph-cli": "^0.96.0",
+    "@graphprotocol/graph-ts": "^0.38.0"
   },
   "module": "index.ts",
   "type": "module",

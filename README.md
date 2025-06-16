@@ -8,9 +8,13 @@ a blockchain indexing service for the flare network.
 ssh root@helhetz01.romenet.io
 cd /opt/sceptre/sflr-subgraph
 docker compose -f docker-compose.prod.yaml up -d
+
+# dev graph in own folder instead of using git worktrees
+cd /opt/sceptre/sflr-subgraph-dev
+docker compose -f docker-compose.dev.yaml up -d
 ```
 
-the subgraph performs graceful updates when the version in docker-compose.yaml is incremented.
+the subgraph performs graceful updates when the version in docker-compose.yaml is incremented and volume kept.
 
 ## limitations
 
@@ -25,4 +29,12 @@ https://flare-explorer.flare.network/api?module=account&action=txlist&address=0x
 ```sh
 ./scripts/syncstate.sh 2d92b6920e93
 start: 23664754, first: 23664754, current: 23717270, latest: 38704972, synced: 52516, speed: 20.84 blk/s, remaining: 14987702, eta: 199.78 hrs, progress: 0.3492%
+```
+
+## deploy to goldsky
+```sh
+yarn
+yarn codegen
+yarn build
+goldsky subgraph deploy sflr-subgraph/0.1.5 --path .
 ```
