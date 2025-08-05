@@ -28,7 +28,7 @@ on:
       rpc_url:
         description: 'RPC URL'
         required: false
-        default: 'https://flare.gateway.tenderly.co'
+        default: 'https://rpc.ankr.com/flare'
       server:
         description: 'Server'
         required: true
