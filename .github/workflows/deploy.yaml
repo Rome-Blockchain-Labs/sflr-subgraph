@@ -26,9 +26,9 @@ on:
         description: 'Custom port prefix (if enabled)'
         required: false
       rpc_url:
-        description: 'RPC URL'
+        description: 'RPC URLs (comma-separated for HA)'
         required: false
-        default: 'https://rpc.ankr.com/flare'
+        default: 'https://rpc.ankr.com/flare,https://flare-api.flare.network/ext/bc/C/rpc,https://flare.rpc.thirdweb.com'
       server:
         description: 'Server'
         required: true
@@ -57,17 +57,17 @@ jobs:
           echo "INSTANCE_NAME=${{ github.event.inputs.instance_name }}" >> $GITHUB_ENV
           echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_ENV
           echo "RPC_URL=${{ github.event.inputs.rpc_url }}" >> $GITHUB_ENV
-          
+
           # Determine the subgraph name based on instance name
           if [[ "${{ github.event.inputs.instance_name }}" == "main" ]]; then
             echo "SUBGRAPH_NAME=sflr-subgraph" >> $GITHUB_ENV
           else
             echo "SUBGRAPH_NAME=sflr-subgraph-${{ github.event.inputs.instance_name }}" >> $GITHUB_ENV
           fi
-          
+
           # Set the compose filename
           echo "COMPOSE_FILE=docker-compose.${{ github.event.inputs.environment }}-${{ github.event.inputs.instance_name }}.yaml" >> $GITHUB_ENV
-          
+
           # Determine port prefix based on environment and server
           if [[ "${{ github.event.inputs.custom_ports }}" == "true" && "${{ github.event.inputs.ports_prefix }}" != "" ]]; then
             echo "PORTS_PREFIX=${{ github.event.inputs.ports_prefix }}" >> $GITHUB_ENV
@@ -85,7 +85,7 @@ jobs:
               echo "PORTS_PREFIX=26" >> $GITHUB_ENV
             fi
           fi
-          
+
           # Determine server host
           if [[ "${{ github.event.inputs.custom_server }}" == "true" && "${{ github.event.inputs.server_host }}" != "" ]]; then
             echo "SERVER_HOST=${{ github.event.inputs.server_host }}" >> $GITHUB_ENV
@@ -94,8 +94,20 @@ jobs:
           elif [[ "${{ github.event.inputs.server }}" == "helhetz02" ]]; then
             echo "SERVER_HOST=helhetz02.romenet.io" >> $GITHUB_ENV
           fi
+
+          # Fixed: Resolve subgraph name first
+          if [[ "${{ github.event.inputs.instance_name }}" == "main" ]]; then
+            RESOLVED_NAME="sflr-subgraph"
+          else
+            RESOLVED_NAME="sflr-subgraph-${{ github.event.inputs.instance_name }}"
+          fi
           
-          echo "DEPLOY_PATH=/home/sceptre/\${SUBGRAPH_NAME}" >> $GITHUB_ENV
+          if [[ "${{ github.event.inputs.environment }}" == "production" ]]; then
+            echo "DEPLOY_PATH=/home/sceptre/${RESOLVED_NAME}" >> $GITHUB_ENV
+          else
+            echo "DEPLOY_PATH=/home/sceptre/${RESOLVED_NAME}-dev" >> $GITHUB_ENV
+          fi
+
           echo "SSH_USER=sceptre" >> $GITHUB_ENV
 
       - uses: webfactory/ssh-agent@v0.8.0
@@ -105,7 +117,7 @@ jobs:
       - name: Create docker-compose
         run: |
           cat > ${{ env.COMPOSE_FILE }} << EOF
-          name: ${{ env.SUBGRAPH_NAME }}
+          name: ${{ env.SUBGRAPH_NAME }}_${{ env.ENVIRONMENT }}
           services:
             ipfs-sflr:
               image: ipfs/kubo:latest
@@ -114,8 +126,8 @@ jobs:
               ports:
                 - '${{ env.PORTS_PREFIX }}051:5001'
               volumes:
-                - ipfs_staging:/export
-                - ipfs_data:/data/ipfs
+                - ipfs_staging_${{ env.ENVIRONMENT }}:/export
+                - ipfs_data_${{ env.ENVIRONMENT }}:/data/ipfs
               environment:
                 IPFS_PROFILE: "server"
               networks:
@@ -136,7 +148,7 @@ jobs:
                 POSTGRES_INITDB_ARGS: "--encoding=UTF8 --locale=C"
               command: ["postgres", "-c", "shared_preload_libraries=pg_stat_statements"]
               volumes:
-                - pgdata:/var/lib/postgresql/data
+                - pgdata_${{ env.ENVIRONMENT }}:/var/lib/postgresql/data
               networks:
                 - sflr_network
 
@@ -147,23 +159,15 @@ jobs:
               ports:
                 - '${{ env.PORTS_PREFIX }}000:8000'
                 - '${{ env.PORTS_PREFIX }}001:8001'
-                # - '${{ env.PORTS_PREFIX }}020:8020' # admin disabled
+                - '${{ env.PORTS_PREFIX }}020:8020'
                 - '${{ env.PORTS_PREFIX }}030:8030'
                 - '${{ env.PORTS_PREFIX }}040:8040'
               depends_on:
                 - ipfs-sflr
                 - postgres-sflr
-              environment:
-                postgres_host: postgres-sflr
-                postgres_user: postgres
-                postgres_pass: letmein
-                postgres_db: graph-node
-                ipfs: 'http://ipfs-sflr:5001'
-                ethereum: 'flare:${{ env.RPC_URL }}'
-                GRAPH_LOG: info
-                ETHEREUM_REORG_THRESHOLD: 0
-                ETHEREUM_ANCESTOR_COUNT: 0
-                GRAPH_ETH_CALL_BY_NUMBER: true
+              volumes:
+                - ./config.toml:/etc/graph-node/config.toml:ro
+              command: ["graph-node", "--config", "/etc/graph-node/config.toml"]
               networks:
                 - sflr_network
 
@@ -182,17 +186,68 @@ jobs:
                 - ipfs-sflr
               networks:
                 - sflr_network
-              volumes:
-              - .:/usr/src/app
 
           networks:
             sflr_network:
               name: sflr_network_${{ env.ENVIRONMENT }}_${{ env.INSTANCE_NAME }}
 
           volumes:
-            ipfs_staging:
-            ipfs_data:
-            pgdata:
+            ipfs_staging_${{ env.ENVIRONMENT }}:
+            ipfs_data_${{ env.ENVIRONMENT }}:
+            pgdata_${{ env.ENVIRONMENT }}:
+          EOF
+
+      - name: Create graph-node config
+        run: |
+          # Parse RPC URLs
+          IFS=',' read -ra RPC_ARRAY <<< "${{ env.RPC_URL }}"
+
+          cat > config.toml << 'EOF'
+          [store]
+          [store.primary]
+          connection = "postgresql://postgres:letmein@postgres-sflr:5432/graph-node"
+          pool_size = 10
+
+          [chains]
+          ingestor = "graph-node-sflr"
+
+          [chains.flare]
+          shard = "primary"
+          protocol = "ethereum"
+
+          EOF
+
+          # Add providers with ankr as priority
+          for i in "${!RPC_ARRAY[@]}"; do
+            url=$(echo "${RPC_ARRAY[$i]}" | xargs)
+            priority=2
+            if [[ "$url" == *"ankr.com"* ]]; then
+              priority=0
+            elif [[ "$url" == *"flare-api.flare.network"* ]]; then
+              priority=1
+            fi
+
+            cat >> config.toml << EOF
+          [[chains.flare.providers]]
+          label = "provider-$i"
+          url = "$url"
+          features = ["archive", "traces"]
+          priority = $priority
+          EOF
+          done
+
+          cat >> config.toml << 'EOF'
+
+          [deployment]
+          [[deployment.rule]]
+          shard = "primary"
+          indexers = ["graph-node-sflr"]
+
+          [general]
+          query = "query"
+          
+          [ipfs]
+          url = "http://ipfs-sflr:5001"
           EOF
 
       - name: Create deploy script
@@ -210,7 +265,7 @@ jobs:
               echo "Waiting for graph-node..."
               sleep 5
           done
-          
+
           [ ! -d "node_modules" ] && npm install
           npx graph codegen
           npx graph build
@@ -218,7 +273,7 @@ jobs:
           npx graph deploy --node "$NODE_URL" --ipfs "$IPFS_URL" "$SUBGRAPH_NAME" subgraph.yaml --version-label "$VERSION"
           echo 'Deployment completed'
           EOF
-          
+
           chmod +x deploy.sh
 
       - name: Deploy
@@ -226,20 +281,28 @@ jobs:
           set -e
           ssh-keyscan ${{ env.SERVER_HOST }} >> ~/.ssh/known_hosts
           ssh ${{ env.SSH_USER }}@${{ env.SERVER_HOST }} "mkdir -p ${{ env.DEPLOY_PATH }}"
-          
+
           echo "Copying files to ${{ env.SERVER_HOST }}..."
           scp ${{ env.COMPOSE_FILE }} ${{ env.SSH_USER }}@${{ env.SERVER_HOST }}:${{ env.DEPLOY_PATH }}/
+          scp config.toml ${{ env.SSH_USER }}@${{ env.SERVER_HOST }}:${{ env.DEPLOY_PATH }}/
           scp deploy.sh Dockerfile package.json subgraph.yaml ${{ env.SSH_USER }}@${{ env.SERVER_HOST }}:${{ env.DEPLOY_PATH }}/
           scp -r src abis schema.graphql ${{ env.SSH_USER }}@${{ env.SERVER_HOST }}:${{ env.DEPLOY_PATH }}/
-          
+
           echo "Starting containers..."
           ssh ${{ env.SSH_USER }}@${{ env.SERVER_HOST }} <<EOF
             set -e
             cd ${{ env.DEPLOY_PATH }}
             docker compose -f $(basename ${{ env.COMPOSE_FILE }}) up -d
+            
+            # verify deployment
+            sleep 10
+            curl -sf http://localhost:${{ env.PORTS_PREFIX }}000/subgraphs/name/${{ env.SUBGRAPH_NAME }} || echo "warning: subgraph not responding yet"
+            docker compose -f $(basename ${{ env.COMPOSE_FILE }}) ps
             echo "Deployment complete"
           EOF
 
       - name: Summary
         run: |
           echo "Deployed to ${{ env.SERVER_HOST }} (Environment: ${{ env.ENVIRONMENT }}, Ports: ${{ env.PORTS_PREFIX }}xxx)"
+          echo "GraphQL: http://${{ env.SERVER_HOST }}:${{ env.PORTS_PREFIX }}000/subgraphs/name/${{ env.SUBGRAPH_NAME }}"
+          echo "Metrics: http://${{ env.SERVER_HOST }}:${{ env.PORTS_PREFIX }}040/"
