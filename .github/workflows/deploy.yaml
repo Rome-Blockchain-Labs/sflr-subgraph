@@ -26,7 +26,7 @@ on:
         description: 'Custom port prefix (if enabled)'
         required: false
       rpc_url:
-        description: 'RPC URLs (comma-separated for HA)'
+        description: 'RPC URLs (comma-separated for high availability)'
         required: false
         default: 'https://rpc.ankr.com/flare,https://flare-api.flare.network/ext/bc/C/rpc,https://flare.rpc.thirdweb.com'
       server:
@@ -167,7 +167,7 @@ jobs:
                 - postgres-sflr
               volumes:
                 - ./config.toml:/etc/graph-node/config.toml:ro
-              command: ["graph-node", "--config", "/etc/graph-node/config.toml"]
+              command: ["graph-node", "--config", "/etc/graph-node/config.toml", "--ipfs", "http://ipfs-sflr:5001"]
               networks:
                 - sflr_network
 
@@ -214,29 +214,23 @@ jobs:
           [chains.flare]
           shard = "primary"
           protocol = "ethereum"
-
+          provider = [
           EOF
 
-          # Add providers with ankr as priority
+          # Add providers as array elements
           for i in "${!RPC_ARRAY[@]}"; do
             url=$(echo "${RPC_ARRAY[$i]}" | xargs)
-            priority=2
-            if [[ "$url" == *"ankr.com"* ]]; then
-              priority=0
-            elif [[ "$url" == *"flare-api.flare.network"* ]]; then
-              priority=1
+            if [ $i -eq 0 ]; then
+              echo "    { label = \"provider-$i\", url = \"$url\", features = [\"archive\", \"traces\"] }," >> config.toml
+            elif [ $i -eq $((${#RPC_ARRAY[@]} - 1)) ]; then
+              echo "    { label = \"provider-$i\", url = \"$url\", features = [\"archive\", \"traces\"] }" >> config.toml
+            else
+              echo "    { label = \"provider-$i\", url = \"$url\", features = [\"archive\", \"traces\"] }," >> config.toml
             fi
-
-            cat >> config.toml << EOF
-          [[chains.flare.providers]]
-          label = "provider-$i"
-          url = "$url"
-          features = ["archive", "traces"]
-          priority = $priority
-          EOF
           done
 
           cat >> config.toml << 'EOF'
+          ]
 
           [deployment]
           [[deployment.rule]]
@@ -245,9 +239,6 @@ jobs:
 
           [general]
           query = "query"
-          
-          [ipfs]
-          url = "http://ipfs-sflr:5001"
           EOF
 
       - name: Create deploy script
@@ -282,22 +273,34 @@ jobs:
           ssh-keyscan ${{ env.SERVER_HOST }} >> ~/.ssh/known_hosts
           ssh ${{ env.SSH_USER }}@${{ env.SERVER_HOST }} "mkdir -p ${{ env.DEPLOY_PATH }}"
 
-          echo "Copying files to ${{ env.SERVER_HOST }}..."
-          scp ${{ env.COMPOSE_FILE }} ${{ env.SSH_USER }}@${{ env.SERVER_HOST }}:${{ env.DEPLOY_PATH }}/
-          scp config.toml ${{ env.SSH_USER }}@${{ env.SERVER_HOST }}:${{ env.DEPLOY_PATH }}/
-          scp deploy.sh Dockerfile package.json subgraph.yaml ${{ env.SSH_USER }}@${{ env.SERVER_HOST }}:${{ env.DEPLOY_PATH }}/
-          scp -r src abis schema.graphql ${{ env.SSH_USER }}@${{ env.SERVER_HOST }}:${{ env.DEPLOY_PATH }}/
+          # Verify config.toml was created
+          if [ ! -f config.toml ]; then
+            echo "ERROR: config.toml not found in workspace"
+            exit 1
+          fi
+          
+          echo "Copying files to ${{ env.SERVER_HOST }}:${{ env.DEPLOY_PATH }}/"
+          scp ${{ env.COMPOSE_FILE }} ${{ env.SSH_USER }}@${{ env.SERVER_HOST }}:${{ env.DEPLOY_PATH }}/ || exit 1
+          scp config.toml ${{ env.SSH_USER }}@${{ env.SERVER_HOST }}:${{ env.DEPLOY_PATH }}/ || exit 1
+          scp deploy.sh Dockerfile package.json subgraph.yaml ${{ env.SSH_USER }}@${{ env.SERVER_HOST }}:${{ env.DEPLOY_PATH }}/ || exit 1
+          scp -r src abis schema.graphql ${{ env.SSH_USER }}@${{ env.SERVER_HOST }}:${{ env.DEPLOY_PATH }}/ || exit 1
 
           echo "Starting containers..."
           ssh ${{ env.SSH_USER }}@${{ env.SERVER_HOST }} <<EOF
             set -e
             cd ${{ env.DEPLOY_PATH }}
+            
+            # Stop existing containers if any
+            docker compose -f $(basename ${{ env.COMPOSE_FILE }}) down 2>/dev/null || true
+            
+            # Start fresh
             docker compose -f $(basename ${{ env.COMPOSE_FILE }}) up -d
             
             # verify deployment
             sleep 10
-            curl -sf http://localhost:${{ env.PORTS_PREFIX }}000/subgraphs/name/${{ env.SUBGRAPH_NAME }} || echo "warning: subgraph not responding yet"
             docker compose -f $(basename ${{ env.COMPOSE_FILE }}) ps
+            docker logs sflr-subgraph-${{ env.INSTANCE_NAME }}_${{ env.ENVIRONMENT }}-graph-node-sflr-1 --tail 20
+            curl -sf http://localhost:${{ env.PORTS_PREFIX }}000/subgraphs/name/${{ env.SUBGRAPH_NAME }} || echo "warning: subgraph not responding yet"
             echo "Deployment complete"
           EOF
 
