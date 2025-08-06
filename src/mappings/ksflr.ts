@@ -1,5 +1,5 @@
 import { BigInt, log } from "@graphprotocol/graph-ts"
-import { Transfer } from "../../generated/kSFLRContract/ERC20"
+import { Transfer } from "../../generated/kSFLRToken/ERC20"
 import { StakingTransaction, Account } from "../../generated/schema"
 import { getOrCreateAccount, createUniqueId, getOrCreateUserMetric } from "./sflr"
 

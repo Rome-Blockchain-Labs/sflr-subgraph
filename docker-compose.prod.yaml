@@ -63,7 +63,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    restart: no
+    restart: "no"
     environment:
       - SUBGRAPH_NAME=sflr-subgraph
       - NODE_URL=http://graph-node-sflr:8020/
