@@ -68,6 +68,7 @@ type Account @entity {
   unlockRequests: [UnlockRequest!]! @derivedFrom(field: "user")
   transactions: [StakingTransaction!]! @derivedFrom(field: "user")
   lastUpdated: BigInt! @index
+  lockedBalance: BigInt! # sFLR locked in kSFLR
 }
 
 type Allowance @entity {
@@ -164,5 +165,15 @@ type ConfigChange @entity {
   parameter: String!
   oldValue: String!
   newValue: String!
+  transactionHash: String! @index
+}
+
+type LiquidationEvent @entity {
+  id: ID!
+  liquidator: Account! @index
+  liquidatedUser: Account! @index
+  kSFLRAmount: BigInt!
+  timestamp: BigInt! @index
+  blockNumber: BigInt! @index
   transactionHash: String! @index
 }

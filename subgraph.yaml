@@ -760,3 +760,24 @@ dataSources:
         - event: Swap(indexed address,indexed address,int256,int256,uint160,uint128,int24)
           handler: handleSwap
       file: ./src/mappings/protocols/enosys.ts
+  - kind: ethereum/contract
+    name: kSFLRToken
+    network: flare
+    source:
+      address: "0x291487bec339c2fe5d83dd45f0a15efc9ac45656"
+      abi: ERC20
+      startBlock: 23664754
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - Account
+        - StakingTransaction
+      abis:
+        - name: ERC20
+          file: ./abis/ERC20.json
+      eventHandlers:
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleKSFLRTransfer
+      file: ./src/mappings/ksflr.ts

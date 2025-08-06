@@ -1,40 +1,52 @@
+import { BigInt } from "@graphprotocol/graph-ts"
 import {
-  Mint,
-  Redeem,
+ Mint, Redeem
 } from "../../../generated/kineticProtocol/ksflr"
 import {
-  ProtocolTransaction,
+ ProtocolTransaction
 } from "../../../generated/schema"
 import { getOrCreateAccount, createUniqueId } from "../sflr";
 
 export function handleMint(event: Mint): void {
-  let uniqueId = createUniqueId(event.block.timestamp, event.transaction.hash.toHex())
-  let userAddress = event.params.minter.toHexString()
+ let userAddress = event.params.minter.toHexString()
+ let transaction = new ProtocolTransaction(createUniqueId(event.block.timestamp, event.transaction.hash.toHex(), "kinetic_mint"))
+ transaction.protocol = "kinetic"
+ transaction.type = "mint"
+ transaction.user = userAddress
+ transaction.amount = event.params.mintAmount
+ transaction.tokens = event.params.mintTokens
+ transaction.timestamp = event.block.timestamp
+ transaction.blockNumber = event.block.number
+ transaction.transactionHash = event.transaction.hash.toHex()
+ transaction.status = "completed"
+ transaction.save()
 
-  let transaction = new ProtocolTransaction(uniqueId)
-  transaction.user = getOrCreateAccount(userAddress).id
-  transaction.type = "kineticMint"
-  transaction.fromAddress = userAddress
-  transaction.flrAmount = event.params.mintAmount
-  transaction.timestamp = event.block.timestamp
-  transaction.blockNumber = event.block.number
-  transaction.transactionHash = event.transaction.hash.toHex()
-  transaction.status = "completed"
-  transaction.save()
+ // Update locked balance when sFLR is deposited to Kinetic
+ let account = getOrCreateAccount(userAddress)
+ account.balance = account.balance.minus(event.params.mintAmount) // sFLR leaves wallet
+ account.lockedBalance = account.lockedBalance.plus(event.params.mintAmount) // sFLR is now locked
+ account.lastUpdated = event.block.timestamp
+ account.save()
 }
 
 export function handleRedeem(event: Redeem): void {
-  let uniqueId = createUniqueId(event.block.timestamp, event.transaction.hash.toHex())
-  let userAddress = event.params.redeemer.toHexString()
+ let userAddress = event.params.redeemer.toHexString()
+ let transaction = new ProtocolTransaction(createUniqueId(event.block.timestamp, event.transaction.hash.toHex(), "kinetic_redeem"))
+ transaction.protocol = "kinetic"
+ transaction.type = "redeem"
+ transaction.user = userAddress
+ transaction.amount = event.params.redeemAmount
+ transaction.tokens = event.params.redeemTokens
+ transaction.timestamp = event.block.timestamp
+ transaction.blockNumber = event.block.number
+ transaction.transactionHash = event.transaction.hash.toHex()
+ transaction.status = "completed"
+ transaction.save()
 
-  let transaction = new ProtocolTransaction(uniqueId)
-  transaction.user = getOrCreateAccount(userAddress).id
-  transaction.type = "kineticWithdraw"
-  transaction.fromAddress = userAddress
-  transaction.flrAmount = event.params.redeemAmount
-  transaction.timestamp = event.block.timestamp
-  transaction.blockNumber = event.block.number
-  transaction.transactionHash = event.transaction.hash.toHex()
-  transaction.status = "completed"
-  transaction.save()
+ // Update balances when sFLR is withdrawn from Kinetic
+ let account = getOrCreateAccount(userAddress)
+ account.balance = account.balance.plus(event.params.redeemAmount) // sFLR returns to wallet
+ account.lockedBalance = account.lockedBalance.minus(event.params.redeemAmount) // sFLR no longer locked
+ account.lastUpdated = event.block.timestamp
+ account.save()
 }
