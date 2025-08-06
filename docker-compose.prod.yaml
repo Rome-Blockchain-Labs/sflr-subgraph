@@ -51,11 +51,7 @@ services:
       postgres_pass: letmein
       postgres_db: graph-node
       ipfs: 'http://ipfs-sflr:5001'
-      # ethereum: 'flare:https://rpc.ankr.com/0g_newton/1b1f135a0c192891731761633298fbd8f66af14f578080574766f9d5e2aefbd8'
-      # ethereum: 'flare:https://flare.solidifi.app/ext/C/rpc'
-      ethereum: 'flare:https://flare.gateway.tenderly.co'
-      # ethereum: 'flare:https://flare.data.romenet.io/ext/C/rpc'
-      # ethereum: 'flare:https://flare-api.flare.network/ext/C/rpc'
+      ethereum: 'flare:https://rpc.ankr.com/flare'
       GRAPH_LOG: info
       ETHEREUM_REORG_THRESHOLD: 0
       ETHEREUM_ANCESTOR_COUNT: 0
