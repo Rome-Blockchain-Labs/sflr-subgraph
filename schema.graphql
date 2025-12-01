@@ -176,3 +176,26 @@ type LiquidationEvent @entity(immutable: false) {
   blockNumber: BigInt! @index
   transactionHash: String! @index
 }
+
+type LiquidityPosition @entity(immutable: false) {
+  id: ID! # protocol-tokenId
+  tokenId: BigInt! @index
+  owner: Account! @index
+  pool: String! @index
+  token0: String!
+  token1: String!
+  fee: Int!
+  tickLower: Int!
+  tickUpper: Int!
+  liquidity: BigInt!
+  protocol: String! @index # "enosys" or "sparkdex"
+  depositedToken0: BigInt!
+  depositedToken1: BigInt!
+  withdrawnToken0: BigInt!
+  withdrawnToken1: BigInt!
+  collectedFees0: BigInt!
+  collectedFees1: BigInt!
+  createdAt: BigInt! @index
+  createdTxHash: String!
+  lastUpdated: BigInt! @index
+}
