@@ -760,3 +760,76 @@ dataSources:
         - event: Swap(indexed address,indexed address,int256,int256,uint160,uint128,int24)
           handler: handleSwap
       file: ./src/mappings/protocols/enosys.ts
+  - kind: ethereum/contract
+    name: kSFLRToken
+    network: flare
+    source:
+      address: "0x291487bec339c2fe5d83dd45f0a15efc9ac45656"
+      abi: ERC20
+      startBlock: 23664754
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - Account
+        - StakingTransaction
+      abis:
+        - name: ERC20
+          file: ./abis/ERC20.json
+      eventHandlers:
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleKSFLRTransfer
+      file: ./src/mappings/ksflr.ts
+  - kind: ethereum/contract
+    name: sparkdexNFTManager
+    network: flare
+    source:
+      address: "0xEE5FF5Bc5F852764b5584d92A4d592A53DC527da"
+      abi: NonfungiblePositionManager
+      startBlock: 20000000
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - LiquidityPosition
+      abis:
+        - name: NonfungiblePositionManager
+          file: ./abis/NonfungiblePositionManager.json
+      eventHandlers:
+        - event: Transfer(indexed address,indexed address,indexed uint256)
+          handler: handleSparkdexTransfer
+        - event: IncreaseLiquidity(indexed uint256,uint128,uint256,uint256)
+          handler: handleSparkdexIncreaseLiquidity
+        - event: DecreaseLiquidity(indexed uint256,uint128,uint256,uint256)
+          handler: handleSparkdexDecreaseLiquidity
+        - event: Collect(indexed uint256,address,uint256,uint256)
+          handler: handleSparkdexCollect
+      file: ./src/mappings/protocols/nftPositions.ts
+  - kind: ethereum/contract
+    name: enosysNFTManager
+    network: flare
+    source:
+      address: "0x28b70f6Ed97429E40FE9a9CD3EB8E86BCBA11dd4"
+      abi: NonfungiblePositionManager
+      startBlock: 15000000
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      entities:
+        - LiquidityPosition
+      abis:
+        - name: NonfungiblePositionManager
+          file: ./abis/NonfungiblePositionManager.json
+      eventHandlers:
+        - event: Transfer(indexed address,indexed address,indexed uint256)
+          handler: handleEnosysTransfer
+        - event: IncreaseLiquidity(indexed uint256,uint128,uint256,uint256)
+          handler: handleEnosysIncreaseLiquidity
+        - event: DecreaseLiquidity(indexed uint256,uint128,uint256,uint256)
+          handler: handleEnosysDecreaseLiquidity
+        - event: Collect(indexed uint256,address,uint256,uint256)
+          handler: handleEnosysCollect
+      file: ./src/mappings/protocols/nftPositions.ts

@@ -68,6 +68,7 @@ export function getOrCreateAccount(address: string): Account {
     account.totalReceived = BigInt.fromI32(0)
     account.totalReceivedWrapped = BigInt.fromI32(0)
     account.lastUpdated = BigInt.fromI32(0)
+    account.lockedBalance = BigInt.fromI32(0)
     account.save()
   }
   return account

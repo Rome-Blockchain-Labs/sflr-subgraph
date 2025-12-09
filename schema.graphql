@@ -1,7 +1,7 @@
-type StakingTransaction @entity {
+type StakingTransaction @entity(immutable: false) {
   id: ID!
   user: Account! @index
-  type: String! # "stake", "unlock_requested", "unlock_cancelled", "redeem", "redeem_overdue", "withdraw", "deposit", "transfer", "approve"
+  type: String! # "stake", "unlock_requested", "unlock_cancelled", "redeem", "redeem_overdue", "withdraw", "deposit", "transfer", "approve", "ksflr_transfer"
   flrAmount: BigInt!
   sflrAmount: BigInt!
   exchangeRate: BigInt!
@@ -17,7 +17,7 @@ type StakingTransaction @entity {
   spender: String @index
 }
 
-type ProtocolTransaction @entity {
+type ProtocolTransaction @entity(immutable: false) {
   id: ID!
   user: Account! @index
   type: String!
@@ -30,7 +30,7 @@ type ProtocolTransaction @entity {
   toAddress: String @index
 }
 
-type SwapTransaction @entity {
+type SwapTransaction @entity(immutable: false) {
   id: ID!
   user: Account! @index
   type: String!
@@ -44,9 +44,9 @@ type SwapTransaction @entity {
   toAddress: String @index
 }
 
-type UnlockRequest @entity {
+type UnlockRequest @entity(immutable: false) {
   id: ID!
-  user: Account! @index  #
+  user: Account! @index
   startedAt: BigInt! @index
   shareAmount: BigInt!
   status: String! # "pending", "completed", "cancelled", "expired"
@@ -56,7 +56,7 @@ type UnlockRequest @entity {
   redemptionTransaction: String # ref to redeem StakingTransaction if redeemed
 }
 
-type Account @entity {
+type Account @entity(immutable: false) {
   id: ID! # user address
   balance: BigInt!
   totalWrappedFlr: BigInt!
@@ -68,9 +68,10 @@ type Account @entity {
   unlockRequests: [UnlockRequest!]! @derivedFrom(field: "user")
   transactions: [StakingTransaction!]! @derivedFrom(field: "user")
   lastUpdated: BigInt! @index
+  lockedBalance: BigInt! # sFLR locked in kSFLR
 }
 
-type Allowance @entity {
+type Allowance @entity(immutable: false) {
   id: ID! # owner-spender
   owner: Account!
   spender: String! @index
@@ -78,7 +79,7 @@ type Allowance @entity {
   lastUpdated: BigInt! @index
 }
 
-type WrappedAllowance @entity {
+type WrappedAllowance @entity(immutable: false) {
   id: ID! # owner-spender
   owner: Account!
   spender: String! @index
@@ -86,7 +87,7 @@ type WrappedAllowance @entity {
   lastUpdated: BigInt! @index
 }
 
-type UserMetric @entity {
+type UserMetric @entity(immutable: false) {
   id: ID! # user address
   currentShares: BigInt!
   totalStaked: BigInt!
@@ -95,14 +96,13 @@ type UserMetric @entity {
   lastInteractionTime: BigInt! @index
   transactionCount: BigInt!
   custodiedShares: BigInt!
-  # New metrics
   activeUnlockRequestCount: Int!
   totalTransferCount: BigInt!
   totalRewardsClaimed: BigInt!
   firstInteractionTime: BigInt! @index
 }
 
-type UserReward @entity {
+type UserReward @entity(immutable: false) {
   id: ID!
   user: String! @index
   rewardType: Int! @index
@@ -114,7 +114,7 @@ type UserReward @entity {
   totalShares: BigInt!
 }
 
-type AccrueReward @entity {
+type AccrueReward @entity(immutable: false) {
   id: ID!
   timestamp: BigInt! @index
   userRewardAmount: BigInt!
@@ -126,13 +126,13 @@ type AccrueReward @entity {
   transactionHash: String! @index
 }
 
-type ExchangeRate @entity {
+type ExchangeRate @entity(immutable: false) {
   id: ID!
   rate: BigInt! @index
   timestamp: BigInt! @index
 }
 
-type StakingState @entity {
+type StakingState @entity(immutable: false) {
   id: ID!
   totalShares: BigInt!
   totalPooledFlr: BigInt!
@@ -140,12 +140,12 @@ type StakingState @entity {
   stakerCount: BigInt!
 }
 
-type InvalidRewardTypeCounter @entity {
+type InvalidRewardTypeCounter @entity(immutable: false) {
   id: ID!
   count: BigInt!
 }
 
-type ProtocolConfig @entity {
+type ProtocolConfig @entity(immutable: false) {
   id: ID!
   timestamp: BigInt! @index
   cooldownPeriod: BigInt!
@@ -157,7 +157,7 @@ type ProtocolConfig @entity {
   buyInStakingFee: BigInt!
 }
 
-type ConfigChange @entity {
+type ConfigChange @entity(immutable: false) {
   id: ID!
   timestamp: BigInt! @index
   blockNumber: BigInt! @index
@@ -165,4 +165,37 @@ type ConfigChange @entity {
   oldValue: String!
   newValue: String!
   transactionHash: String! @index
+}
+
+type LiquidationEvent @entity(immutable: false) {
+  id: ID!
+  liquidator: Account! @index
+  liquidatedUser: Account! @index
+  kSFLRAmount: BigInt!
+  timestamp: BigInt! @index
+  blockNumber: BigInt! @index
+  transactionHash: String! @index
+}
+
+type LiquidityPosition @entity(immutable: false) {
+  id: ID! # protocol-tokenId
+  tokenId: BigInt! @index
+  owner: Account! @index
+  pool: String! @index
+  token0: String!
+  token1: String!
+  fee: Int!
+  tickLower: Int!
+  tickUpper: Int!
+  liquidity: BigInt!
+  protocol: String! @index # "enosys" or "sparkdex"
+  depositedToken0: BigInt!
+  depositedToken1: BigInt!
+  withdrawnToken0: BigInt!
+  withdrawnToken1: BigInt!
+  collectedFees0: BigInt!
+  collectedFees1: BigInt!
+  createdAt: BigInt! @index
+  createdTxHash: String!
+  lastUpdated: BigInt! @index
 }
