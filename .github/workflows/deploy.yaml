@@ -256,7 +256,10 @@ jobs:
           ssh ${{ env.SSH_USER }}@${{ env.SERVER_HOST }} <<EOF
             set -e
             cd ${{ env.DEPLOY_PATH }}
-            docker compose -f $(basename ${{ env.COMPOSE_FILE }}) down 2>/dev/null || true
+            # stop any existing compose project in this directory
+            for f in docker-compose*.yaml; do
+              docker compose -f "\$f" down 2>/dev/null || true
+            done
             docker compose -f $(basename ${{ env.COMPOSE_FILE }}) up -d
             sleep 10
             docker compose -f $(basename ${{ env.COMPOSE_FILE }}) ps
@@ -525,9 +528,11 @@ jobs:
             set -e
             cd ${{ env.DEPLOY_PATH }}
             
-            # Stop existing containers if any
-            docker compose -f $(basename ${{ env.COMPOSE_FILE }}) down 2>/dev/null || true
-            
+            # stop any existing compose project in this directory
+            for f in docker-compose*.yaml; do
+              docker compose -f "\$f" down 2>/dev/null || true
+            done
+
             # Start fresh
             docker compose -f $(basename ${{ env.COMPOSE_FILE }}) up -d
             
