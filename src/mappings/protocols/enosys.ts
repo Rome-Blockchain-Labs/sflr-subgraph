@@ -7,6 +7,7 @@ import {
   ProtocolTransaction,
   SwapTransaction
 } from "../../../generated/schema"
+
 import { getOrCreateAccount, createUniqueId } from "../sflr";
 
 export function handleMint(event: Mint): void {

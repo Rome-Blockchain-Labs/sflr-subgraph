@@ -4,15 +4,38 @@ a blockchain indexing service for the flare network.
 
 ## deployment
 
+### automatic deployment (recommended)
+
+pushing to `main` branch automatically deploys to **helhetz02** and **helhetz03** via GitHub Actions.
+
+```sh
+git push origin main
+# deploys to helhetz02 (port prefix 16xxx) and helhetz03 (port prefix 17xxx)
+```
+
+### manual deployment via GitHub Actions
+
+use the "Deploy Subgraph" workflow in GitHub Actions for:
+- deploying to **helhetz01** (production - protected, manual only)
+- deploying specific versions
+- deploying to development environment
+- custom configurations
+
+### legacy manual deployment (helhetz01 production)
+
 ```sh
 ssh root@helhetz01.romenet.io
 cd /opt/sceptre/sflr-subgraph
 docker compose -f docker-compose.prod.yaml up -d
-
-# dev graph in own folder instead of using git worktrees
-cd /opt/sceptre/sflr-subgraph-dev
-docker compose -f docker-compose.dev.yaml up -d
 ```
+
+### server port mapping
+
+| server    | environment | port prefix | graphql endpoint |
+|-----------|-------------|-------------|------------------|
+| helhetz01 | production  | 15xxx       | :15000           |
+| helhetz02 | production  | 16xxx       | :16000           |
+| helhetz03 | production  | 17xxx       | :17000           |
 
 the subgraph performs graceful updates when the version in docker-compose.yaml is incremented and volume kept.
 
