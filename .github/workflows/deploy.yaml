@@ -55,7 +55,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        server: [helhetz02, helhetz03]
+        server: [helhetz03]
     steps:
       - uses: actions/checkout@v4
 
