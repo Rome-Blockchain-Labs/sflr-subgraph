@@ -260,6 +260,7 @@ jobs:
             for f in docker-compose*.yaml; do
               docker compose -f "\$f" down 2>/dev/null || true
             done
+            docker compose -f $(basename ${{ env.COMPOSE_FILE }}) build --no-cache deploy-subgraph-sflr
             docker compose -f $(basename ${{ env.COMPOSE_FILE }}) up -d
             sleep 10
             docker compose -f $(basename ${{ env.COMPOSE_FILE }}) ps
@@ -533,7 +534,8 @@ jobs:
               docker compose -f "\$f" down 2>/dev/null || true
             done
 
-            # Start fresh
+            # rebuild deploy container and start fresh
+            docker compose -f $(basename ${{ env.COMPOSE_FILE }}) build --no-cache deploy-subgraph-sflr
             docker compose -f $(basename ${{ env.COMPOSE_FILE }}) up -d
             
             # verify deployment
