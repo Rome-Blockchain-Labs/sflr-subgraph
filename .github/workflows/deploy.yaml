@@ -96,6 +96,27 @@ jobs:
           cat > ${{ env.COMPOSE_FILE }} << EOF
           name: ${{ env.SUBGRAPH_NAME }}_${{ env.ENVIRONMENT }}
           services:
+            redis-erpc:
+              image: redis:7-alpine
+              restart: always
+              volumes:
+                - redis_data:/data
+              command: ["redis-server", "--save", "60", "1", "--loglevel", "warning"]
+              networks:
+                - sflr_network
+
+            erpc:
+              image: ghcr.io/erpc/erpc:latest
+              restart: always
+              volumes:
+                - ./erpc.yaml:/root/erpc.yaml
+              ports:
+                - '${{ env.PORTS_PREFIX }}060:4000'
+              depends_on:
+                - redis-erpc
+              networks:
+                - sflr_network
+
             ipfs-sflr:
               image: ipfs/kubo:latest
               restart: always
@@ -142,6 +163,7 @@ jobs:
               depends_on:
                 - ipfs-sflr
                 - postgres-sflr
+                - erpc
               volumes:
                 - ./config.toml:/etc/graph-node/config.toml:ro
               command: ["graph-node", "--config", "/etc/graph-node/config.toml", "--ipfs", "http://ipfs-sflr:5001"]
@@ -172,12 +194,11 @@ jobs:
             ipfs_staging_${{ env.ENVIRONMENT }}:
             ipfs_data_${{ env.ENVIRONMENT }}:
             pgdata_${{ env.ENVIRONMENT }}:
+            redis_data:
           EOF
 
       - name: Create graph-node config
         run: |
-          IFS=',' read -ra RPC_ARRAY <<< "${{ env.RPC_URL }}"
-
           cat > config.toml << 'EOF'
           [store]
           [store.primary]
@@ -191,18 +212,7 @@ jobs:
           shard = "primary"
           protocol = "ethereum"
           provider = [
-          EOF
-
-          for i in "${!RPC_ARRAY[@]}"; do
-            url=$(echo "${RPC_ARRAY[$i]}" | xargs)
-            if [ $i -eq $((${#RPC_ARRAY[@]} - 1)) ]; then
-              echo "    { label = \"provider-$i\", url = \"$url\", features = [\"archive\", \"traces\"] }" >> config.toml
-            else
-              echo "    { label = \"provider-$i\", url = \"$url\", features = [\"archive\", \"traces\"] }," >> config.toml
-            fi
-          done
-
-          cat >> config.toml << 'EOF'
+              { label = "erpc", url = "http://erpc:4000/main/evm/14", features = ["archive", "traces"] }
           ]
 
           [deployment]
@@ -213,6 +223,88 @@ jobs:
           [general]
           query = "query"
           EOF
+
+      - name: Create eRPC config
+        run: |
+          IFS=',' read -ra RPC_ARRAY <<< "${{ env.RPC_URL }}"
+
+          cat > erpc.yaml << 'ERPCEOF'
+          logLevel: warn
+
+          server:
+            httpHostV4: "0.0.0.0"
+            httpPortV4: 4000
+            maxTimeout: 120s
+
+          database:
+            evmJsonRpcCache:
+              connectors:
+                - id: redis-cache
+                  driver: redis
+                  redis:
+                    addr: redis://redis-erpc:6379
+              policies:
+                - connector: redis-cache
+                  network: "evm:14"
+                  finality: finalized
+                  ttl: 0
+                - connector: redis-cache
+                  network: "evm:14"
+                  finality: unfinalized
+                  ttl: 30s
+                - connector: redis-cache
+                  network: "evm:14"
+                  finality: realtime
+                  ttl: 3s
+
+          rateLimiters:
+            budgets:
+              - id: default-budget
+                rules:
+                  - method: "*"
+                    maxCount: 10
+                    period: 1s
+
+          projects:
+            - id: main
+              networks:
+                - architecture: evm
+                  evm:
+                    chainId: 14
+                  failsafe:
+                    timeout:
+                      duration: 30s
+                    retry:
+                      maxAttempts: 3
+                      delay: 1s
+                      backoffMaxDelay: 10s
+                      backoffFactor: 2
+                      jitter: 500ms
+                    hedge:
+                      delay: 5s
+                      maxCount: 2
+              upstreams:
+          ERPCEOF
+
+          for i in "${!RPC_ARRAY[@]}"; do
+            url=$(echo "${RPC_ARRAY[$i]}" | xargs)
+            cat >> erpc.yaml << UPEOF
+                - id: provider-$i
+                  type: evm
+                  endpoint: $url
+                  evm:
+                    chainId: 14
+                  rateLimitBudget: default-budget
+                  rateLimitAutoTune:
+                    enabled: true
+                    adjustmentPeriod: 1m
+                    errorRateThreshold: 0.1
+                    increaseFactor: 1.05
+                    decreaseFactor: 0.9
+                    minBudget: 0
+                    maxBudget: 100
+          UPEOF
+          done
 
       - name: Create deploy script
         run: |
@@ -248,7 +340,7 @@ jobs:
 
           echo "Copying files to ${{ env.SERVER_HOST }}:${{ env.DEPLOY_PATH }}/"
           scp ${{ env.COMPOSE_FILE }} ${{ env.SSH_USER }}@${{ env.SERVER_HOST }}:${{ env.DEPLOY_PATH }}/ || exit 1
-          scp config.toml ${{ env.SSH_USER }}@${{ env.SERVER_HOST }}:${{ env.DEPLOY_PATH }}/ || exit 1
+          scp config.toml erpc.yaml ${{ env.SSH_USER }}@${{ env.SERVER_HOST }}:${{ env.DEPLOY_PATH }}/ || exit 1
           scp deploy.sh Dockerfile package.json subgraph.yaml ${{ env.SSH_USER }}@${{ env.SERVER_HOST }}:${{ env.DEPLOY_PATH }}/ || exit 1
           scp -r src abis schema.graphql ${{ env.SSH_USER }}@${{ env.SERVER_HOST }}:${{ env.DEPLOY_PATH }}/ || exit 1
 
@@ -358,6 +450,27 @@ jobs:
           cat > ${{ env.COMPOSE_FILE }} << EOF
           name: ${{ env.SUBGRAPH_NAME }}_${{ env.ENVIRONMENT }}
           services:
+            redis-erpc:
+              image: redis:7-alpine
+              restart: always
+              volumes:
+                - redis_data:/data
+              command: ["redis-server", "--save", "60", "1", "--loglevel", "warning"]
+              networks:
+                - sflr_network
+
+            erpc:
+              image: ghcr.io/erpc/erpc:latest
+              restart: always
+              volumes:
+                - ./erpc.yaml:/root/erpc.yaml
+              ports:
+                - '${{ env.PORTS_PREFIX }}060:4000'
+              depends_on:
+                - redis-erpc
+              networks:
+                - sflr_network
+
             ipfs-sflr:
               image: ipfs/kubo:latest
               restart: always
@@ -404,6 +517,7 @@ jobs:
               depends_on:
                 - ipfs-sflr
                 - postgres-sflr
+                - erpc
               volumes:
                 - ./config.toml:/etc/graph-node/config.toml:ro
               command: ["graph-node", "--config", "/etc/graph-node/config.toml", "--ipfs", "http://ipfs-sflr:5001"]
@@ -434,13 +548,11 @@ jobs:
             ipfs_staging_${{ env.ENVIRONMENT }}:
             ipfs_data_${{ env.ENVIRONMENT }}:
             pgdata_${{ env.ENVIRONMENT }}:
+            redis_data:
           EOF
 
       - name: Create graph-node config
         run: |
-          # Parse RPC URLs
-          IFS=',' read -ra RPC_ARRAY <<< "${{ env.RPC_URL }}"
-
           cat > config.toml << 'EOF'
           [store]
           [store.primary]
@@ -454,21 +566,7 @@ jobs:
           shard = "primary"
           protocol = "ethereum"
           provider = [
-          EOF
-
-          # Add providers as array elements
-          for i in "${!RPC_ARRAY[@]}"; do
-            url=$(echo "${RPC_ARRAY[$i]}" | xargs)
-            if [ $i -eq 0 ]; then
-              echo "    { label = \"provider-$i\", url = \"$url\", features = [\"archive\", \"traces\"] }," >> config.toml
-            elif [ $i -eq $((${#RPC_ARRAY[@]} - 1)) ]; then
-              echo "    { label = \"provider-$i\", url = \"$url\", features = [\"archive\", \"traces\"] }" >> config.toml
-            else
-              echo "    { label = \"provider-$i\", url = \"$url\", features = [\"archive\", \"traces\"] }," >> config.toml
-            fi
-          done
-
-          cat >> config.toml << 'EOF'
+              { label = "erpc", url = "http://erpc:4000/main/evm/14", features = ["archive", "traces"] }
           ]
 
           [deployment]
@@ -479,6 +577,88 @@ jobs:
           [general]
           query = "query"
           EOF
+
+      - name: Create eRPC config
+        run: |
+          IFS=',' read -ra RPC_ARRAY <<< "${{ env.RPC_URL }}"
+
+          cat > erpc.yaml << 'ERPCEOF'
+          logLevel: warn
+
+          server:
+            httpHostV4: "0.0.0.0"
+            httpPortV4: 4000
+            maxTimeout: 120s
+
+          database:
+            evmJsonRpcCache:
+              connectors:
+                - id: redis-cache
+                  driver: redis
+                  redis:
+                    addr: redis://redis-erpc:6379
+              policies:
+                - connector: redis-cache
+                  network: "evm:14"
+                  finality: finalized
+                  ttl: 0
+                - connector: redis-cache
+                  network: "evm:14"
+                  finality: unfinalized
+                  ttl: 30s
+                - connector: redis-cache
+                  network: "evm:14"
+                  finality: realtime
+                  ttl: 3s
+
+          rateLimiters:
+            budgets:
+              - id: default-budget
+                rules:
+                  - method: "*"
+                    maxCount: 10
+                    period: 1s
+
+          projects:
+            - id: main
+              networks:
+                - architecture: evm
+                  evm:
+                    chainId: 14
+                  failsafe:
+                    timeout:
+                      duration: 30s
+                    retry:
+                      maxAttempts: 3
+                      delay: 1s
+                      backoffMaxDelay: 10s
+                      backoffFactor: 2
+                      jitter: 500ms
+                    hedge:
+                      delay: 5s
+                      maxCount: 2
+              upstreams:
+          ERPCEOF
+
+          for i in "${!RPC_ARRAY[@]}"; do
+            url=$(echo "${RPC_ARRAY[$i]}" | xargs)
+            cat >> erpc.yaml << UPEOF
+                - id: provider-$i
+                  type: evm
+                  endpoint: $url
+                  evm:
+                    chainId: 14
+                  rateLimitBudget: default-budget
+                  rateLimitAutoTune:
+                    enabled: true
+                    adjustmentPeriod: 1m
+                    errorRateThreshold: 0.1
+                    increaseFactor: 1.05
+                    decreaseFactor: 0.9
+                    minBudget: 0
+                    maxBudget: 100
+          UPEOF
+          done
 
       - name: Create deploy script
         run: |
@@ -520,7 +700,7 @@ jobs:
           
           echo "Copying files to ${{ env.SERVER_HOST }}:${{ env.DEPLOY_PATH }}/"
           scp ${{ env.COMPOSE_FILE }} ${{ env.SSH_USER }}@${{ env.SERVER_HOST }}:${{ env.DEPLOY_PATH }}/ || exit 1
-          scp config.toml ${{ env.SSH_USER }}@${{ env.SERVER_HOST }}:${{ env.DEPLOY_PATH }}/ || exit 1
+          scp config.toml erpc.yaml ${{ env.SSH_USER }}@${{ env.SERVER_HOST }}:${{ env.DEPLOY_PATH }}/ || exit 1
           scp deploy.sh Dockerfile package.json subgraph.yaml ${{ env.SSH_USER }}@${{ env.SERVER_HOST }}:${{ env.DEPLOY_PATH }}/ || exit 1
           scp -r src abis schema.graphql ${{ env.SSH_USER }}@${{ env.SERVER_HOST }}:${{ env.DEPLOY_PATH }}/ || exit 1
 
