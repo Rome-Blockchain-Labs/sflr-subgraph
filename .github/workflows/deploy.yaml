@@ -31,7 +31,7 @@ on:
       rpc_url:
         description: 'RPC URLs (comma-separated for high availability)'
         required: false
-        default: 'https://rpc.ankr.com/flare,https://flare-api.flare.network/ext/bc/C/rpc,https://flare.rpc.thirdweb.com'
+        default: 'https://flare-api.flare.network/ext/bc/C/rpc,https://rpc.ankr.com/flare,https://flare.public-rpc.com'
       server:
         description: 'Server (helhetz01 is protected - manual only)'
         required: true
@@ -65,7 +65,7 @@ jobs:
           echo "ENVIRONMENT=production" >> $GITHUB_ENV
           echo "INSTANCE_NAME=main" >> $GITHUB_ENV
           echo "VERSION=0.1.7" >> $GITHUB_ENV
-          echo "RPC_URL=https://rpc.ankr.com/flare,https://flare-api.flare.network/ext/bc/C/rpc,https://flare.rpc.thirdweb.com" >> $GITHUB_ENV
+          echo "RPC_URL=https://flare-api.flare.network/ext/bc/C/rpc,https://rpc.ankr.com/flare,https://flare.public-rpc.com" >> $GITHUB_ENV
           echo "SUBGRAPH_NAME=sflr-subgraph" >> $GITHUB_ENV
           echo "COMPOSE_FILE=docker-compose.production-main.yaml" >> $GITHUB_ENV
 
