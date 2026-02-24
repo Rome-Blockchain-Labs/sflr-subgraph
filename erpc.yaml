@@ -1,0 +1,129 @@
+logLevel: warn
+
+server:
+  httpHostV4: "0.0.0.0"
+  httpPortV4: 4000
+  maxTimeout: 120s
+
+database:
+  evmJsonRpcCache:
+    connectors:
+      - id: redis-cache
+        driver: redis
+        redis:
+          addr: redis://redis-erpc:6379
+    policies:
+      - connector: redis-cache
+        network: "evm:14"
+        finality: finalized
+        ttl: 0
+      - connector: redis-cache
+        network: "evm:14"
+        finality: unfinalized
+        ttl: 30s
+      - connector: redis-cache
+        network: "evm:14"
+        finality: realtime
+        ttl: 3s
+
+rateLimiters:
+  budgets:
+    - id: default-budget
+      rules:
+        - method: "*"
+          maxCount: 100
+          period: 1s
+
+projects:
+  - id: main
+    networks:
+      - architecture: evm
+        evm:
+          chainId: 14
+        failsafe:
+          timeout:
+            duration: 30s
+          retry:
+            maxAttempts: 3
+            delay: 1s
+            backoffMaxDelay: 10s
+            backoffFactor: 2
+            jitter: 500ms
+          hedge:
+            delay: 5s
+            maxCount: 2
+    upstreams:
+      - id: flare-official
+        type: evm
+        endpoint: https://flare-api.flare.network/ext/bc/C/rpc
+        evm:
+          chainId: 14
+        rateLimitBudget: default-budget
+        rateLimitAutoTune:
+          enabled: true
+          adjustmentPeriod: 1m
+          errorRateThreshold: 0.1
+          increaseFactor: 1.05
+          decreaseFactor: 0.9
+          minBudget: 0
+          maxBudget: 1000
+
+      - id: flare-ankr
+        type: evm
+        endpoint: https://rpc.ankr.com/flare
+        evm:
+          chainId: 14
+        rateLimitBudget: default-budget
+        rateLimitAutoTune:
+          enabled: true
+          adjustmentPeriod: 1m
+          errorRateThreshold: 0.1
+          increaseFactor: 1.05
+          decreaseFactor: 0.9
+          minBudget: 0
+          maxBudget: 1000
+
+      - id: flare-publicrpc
+        type: evm
+        endpoint: https://flare.public-rpc.com
+        evm:
+          chainId: 14
+        rateLimitBudget: default-budget
+        rateLimitAutoTune:
+          enabled: true
+          adjustmentPeriod: 1m
+          errorRateThreshold: 0.1
+          increaseFactor: 1.05
+          decreaseFactor: 0.9
+          minBudget: 0
+          maxBudget: 1000
+
+      - id: flare-tatum
+        type: evm
+        endpoint: https://flare-mainnet.gateway.tatum.io
+        evm:
+          chainId: 14
+        rateLimitBudget: default-budget
+        rateLimitAutoTune:
+          enabled: true
+          adjustmentPeriod: 1m
+          errorRateThreshold: 0.1
+          increaseFactor: 1.05
+          decreaseFactor: 0.9
+          minBudget: 0
+          maxBudget: 1000
+
+      - id: flare-aucc
+        type: evm
+        endpoint: https://rpc.au.cc/flare
+        evm:
+          chainId: 14
+        rateLimitBudget: default-budget
+        rateLimitAutoTune:
+          enabled: true
+          adjustmentPeriod: 1m
+          errorRateThreshold: 0.1
+          increaseFactor: 1.05
+          decreaseFactor: 0.9
+          minBudget: 0
+          maxBudget: 1000
