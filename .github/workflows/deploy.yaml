@@ -47,6 +47,10 @@ on:
       server_host:
         description: 'Custom server host (if enabled)'
         required: false
+      force_deploy:
+        description: 'Force re-deploy subgraph (wipes sync state)'
+        type: boolean
+        default: false
 
 jobs:
   # Auto-deploy to helhetz02 and helhetz03 on push to main
@@ -175,11 +179,16 @@ jobs:
                 context: .
                 dockerfile: Dockerfile
               restart: no
+              # Profile-gated: a bare `docker compose up` will NOT run this. The
+              # workflow uses `--profile deploy` explicitly. Prevents accidental
+              # re-deploys (which were silently unassigning the running indexer).
+              profiles: ["deploy"]
               environment:
                 - SUBGRAPH_NAME=${{ env.SUBGRAPH_NAME }}
                 - NODE_URL=http://graph-node-sflr:8020/
                 - IPFS_URL=http://ipfs-sflr:5001
                 - VERSION=${{ env.VERSION }}
+                - FORCE_DEPLOY=${{ github.event.inputs.force_deploy || 'false' }}
               depends_on:
                 - graph-node-sflr
                 - ipfs-sflr
@@ -306,32 +315,6 @@ jobs:
           UPEOF
           done
 
-      - name: Create deploy script
-        run: |
-          cat > deploy.sh << 'EOF'
-          #!/bin/bash
-          set -e
-          SUBGRAPH_NAME="${SUBGRAPH_NAME:-sflr-subgraph}"
-          NODE_URL="${NODE_URL:-http://graph-node-sflr:8020/}"
-          IPFS_URL="${IPFS_URL:-http://ipfs-sflr:5001}"
-          VERSION="${VERSION:-0.1.7}"
-
-          echo "Deploying $SUBGRAPH_NAME v$VERSION"
-          until curl -s "$NODE_URL" > /dev/null; do
-              echo "Waiting for graph-node..."
-              sleep 5
-          done
-
-          [ ! -d "node_modules" ] && npm install
-          npx graph codegen
-          npx graph build
-          npx graph create --node "$NODE_URL" "$SUBGRAPH_NAME" || true
-          npx graph deploy --node "$NODE_URL" --ipfs "$IPFS_URL" "$SUBGRAPH_NAME" subgraph.yaml --version-label "$VERSION"
-          echo 'Deployment completed'
-          EOF
-
-          chmod +x deploy.sh
-
       - name: Deploy to ${{ matrix.server }}
         run: |
           set -e
@@ -352,8 +335,8 @@ jobs:
             for f in docker-compose*.yaml; do
               docker compose -f "\$f" down 2>/dev/null || true
             done
-            docker compose -f $(basename ${{ env.COMPOSE_FILE }}) build --no-cache deploy-subgraph-sflr
-            docker compose -f $(basename ${{ env.COMPOSE_FILE }}) up -d
+            docker compose -f $(basename ${{ env.COMPOSE_FILE }}) --profile deploy build --no-cache deploy-subgraph-sflr
+            docker compose -f $(basename ${{ env.COMPOSE_FILE }}) --profile deploy up -d
             sleep 10
             docker compose -f $(basename ${{ env.COMPOSE_FILE }}) ps
           EOF
@@ -529,11 +512,16 @@ jobs:
                 context: .
                 dockerfile: Dockerfile
               restart: no
+              # Profile-gated: a bare `docker compose up` will NOT run this. The
+              # workflow uses `--profile deploy` explicitly. Prevents accidental
+              # re-deploys (which were silently unassigning the running indexer).
+              profiles: ["deploy"]
               environment:
                 - SUBGRAPH_NAME=${{ env.SUBGRAPH_NAME }}
                 - NODE_URL=http://graph-node-sflr:8020/
                 - IPFS_URL=http://ipfs-sflr:5001
                 - VERSION=${{ env.VERSION }}
+                - FORCE_DEPLOY=${{ github.event.inputs.force_deploy || 'false' }}
               depends_on:
                 - graph-node-sflr
                 - ipfs-sflr
@@ -660,32 +648,6 @@ jobs:
           UPEOF
           done
 
-      - name: Create deploy script
-        run: |
-          cat > deploy.sh << 'EOF'
-          #!/bin/bash
-          set -e
-          SUBGRAPH_NAME="${SUBGRAPH_NAME:-sflr-subgraph}"
-          NODE_URL="${NODE_URL:-http://graph-node-sflr:8020/}"
-          IPFS_URL="${IPFS_URL:-http://ipfs-sflr:5001}"
-          VERSION="${VERSION:-0.1.5}"
-
-          echo "Deploying $SUBGRAPH_NAME v$VERSION"
-          until curl -s "$NODE_URL" > /dev/null; do
-              echo "Waiting for graph-node..."
-              sleep 5
-          done
-
-          [ ! -d "node_modules" ] && npm install
-          npx graph codegen
-          npx graph build
-          npx graph create --node "$NODE_URL" "$SUBGRAPH_NAME" || true
-          npx graph deploy --node "$NODE_URL" --ipfs "$IPFS_URL" "$SUBGRAPH_NAME" subgraph.yaml --version-label "$VERSION"
-          echo 'Deployment completed'
-          EOF
-
-          chmod +x deploy.sh
-
       - name: Deploy
         run: |
           set -e
@@ -697,7 +659,7 @@ jobs:
             echo "ERROR: config.toml not found in workspace"
             exit 1
           fi
-          
+
           echo "Copying files to ${{ env.SERVER_HOST }}:${{ env.DEPLOY_PATH }}/"
           scp ${{ env.COMPOSE_FILE }} ${{ env.SSH_USER }}@${{ env.SERVER_HOST }}:${{ env.DEPLOY_PATH }}/ || exit 1
           scp config.toml erpc.yaml ${{ env.SSH_USER }}@${{ env.SERVER_HOST }}:${{ env.DEPLOY_PATH }}/ || exit 1
@@ -708,16 +670,16 @@ jobs:
           ssh ${{ env.SSH_USER }}@${{ env.SERVER_HOST }} <<EOF
             set -e
             cd ${{ env.DEPLOY_PATH }}
-            
+
             # stop any existing compose project in this directory
             for f in docker-compose*.yaml; do
               docker compose -f "\$f" down 2>/dev/null || true
             done
 
             # rebuild deploy container and start fresh
-            docker compose -f $(basename ${{ env.COMPOSE_FILE }}) build --no-cache deploy-subgraph-sflr
-            docker compose -f $(basename ${{ env.COMPOSE_FILE }}) up -d
-            
+            docker compose -f $(basename ${{ env.COMPOSE_FILE }}) --profile deploy build --no-cache deploy-subgraph-sflr
+            docker compose -f $(basename ${{ env.COMPOSE_FILE }}) --profile deploy up -d
+
             # verify deployment
             sleep 10
             docker compose -f $(basename ${{ env.COMPOSE_FILE }}) ps
