@@ -115,7 +115,7 @@ jobs:
               volumes:
                 - ./erpc.yaml:/root/erpc.yaml
               ports:
-                - '${{ env.PORTS_PREFIX }}060:4000'
+                - '127.0.0.1:${{ env.PORTS_PREFIX }}060:4000'
               depends_on:
                 - redis-erpc
               networks:
@@ -126,7 +126,7 @@ jobs:
               restart: always
               pull_policy: always
               ports:
-                - '${{ env.PORTS_PREFIX }}051:5001'
+                - '127.0.0.1:${{ env.PORTS_PREFIX }}051:5001'
               volumes:
                 - ipfs_staging_${{ env.ENVIRONMENT }}:/export
                 - ipfs_data_${{ env.ENVIRONMENT }}:/data/ipfs
@@ -142,7 +142,7 @@ jobs:
               restart: always
               pull_policy: always
               ports:
-                - '${{ env.PORTS_PREFIX }}432:5432'
+                - '127.0.0.1:${{ env.PORTS_PREFIX }}432:5432'
               environment:
                 POSTGRES_PASSWORD: letmein
                 POSTGRES_USER: postgres
@@ -161,8 +161,8 @@ jobs:
               ports:
                 - '${{ env.PORTS_PREFIX }}000:8000'
                 - '${{ env.PORTS_PREFIX }}001:8001'
-                - '${{ env.PORTS_PREFIX }}020:8020'
-                - '${{ env.PORTS_PREFIX }}030:8030'
+                - '127.0.0.1:${{ env.PORTS_PREFIX }}020:8020'
+                - '127.0.0.1:${{ env.PORTS_PREFIX }}030:8030'
                 - '${{ env.PORTS_PREFIX }}040:8040'
               depends_on:
                 - ipfs-sflr
@@ -448,7 +448,7 @@ jobs:
               volumes:
                 - ./erpc.yaml:/root/erpc.yaml
               ports:
-                - '${{ env.PORTS_PREFIX }}060:4000'
+                - '127.0.0.1:${{ env.PORTS_PREFIX }}060:4000'
               depends_on:
                 - redis-erpc
               networks:
@@ -459,7 +459,7 @@ jobs:
               restart: always
               pull_policy: always
               ports:
-                - '${{ env.PORTS_PREFIX }}051:5001'
+                - '127.0.0.1:${{ env.PORTS_PREFIX }}051:5001'
               volumes:
                 - ipfs_staging_${{ env.ENVIRONMENT }}:/export
                 - ipfs_data_${{ env.ENVIRONMENT }}:/data/ipfs
@@ -475,7 +475,7 @@ jobs:
               restart: always
               pull_policy: always
               ports:
-                - '${{ env.PORTS_PREFIX }}432:5432'
+                - '127.0.0.1:${{ env.PORTS_PREFIX }}432:5432'
               environment:
                 POSTGRES_PASSWORD: letmein
                 POSTGRES_USER: postgres
@@ -494,8 +494,8 @@ jobs:
               ports:
                 - '${{ env.PORTS_PREFIX }}000:8000'
                 - '${{ env.PORTS_PREFIX }}001:8001'
-                - '${{ env.PORTS_PREFIX }}020:8020'
-                - '${{ env.PORTS_PREFIX }}030:8030'
+                - '127.0.0.1:${{ env.PORTS_PREFIX }}020:8020'
+                - '127.0.0.1:${{ env.PORTS_PREFIX }}030:8030'
                 - '${{ env.PORTS_PREFIX }}040:8040'
               depends_on:
                 - ipfs-sflr
