@@ -16,20 +16,33 @@ until curl -s "$NODE_URL" > /dev/null; do
 done
 echo 'Graph node is ready.'
 
-# Check if subgraph is already deployed and syncing/synced
-GRAPHQL_URL=$(echo "$NODE_URL" | sed 's|:8020/$|:8000/subgraphs/name/'"$SUBGRAPH_NAME"'|')
-STATUS=$(curl -sf -X POST -H "Content-Type: application/json" \
-    -d '{"query":"{_meta{block{number}}}"}' \
-    "$GRAPHQL_URL" 2>/dev/null)
+# Check if subgraph is already deployed via the indexing-status endpoint
+# (port 8030). That endpoint reports any registered deployment immediately,
+# without depending on the per-subgraph runner being warm yet — which avoids
+# the race where graph-node has just restarted, port 8020 is up, but the
+# runner hasn't loaded sgd1's assignment yet.
+STATUS_URL=$(echo "$NODE_URL" | sed 's|:8020/$|:8030/graphql|')
+EXISTS_QUERY='{"query":"{indexingStatusForCurrentVersion(subgraphName:\"'"$SUBGRAPH_NAME"'\"){subgraph chains{latestBlock{number}}}}"}'
 
-if echo "$STATUS" | grep -q '"number"'; then
-    BLOCK=$(echo "$STATUS" | grep -o '"number":[0-9]*' | cut -d: -f2)
-    echo "Subgraph already deployed and at block $BLOCK. Skipping deploy."
-    echo "To force re-deploy, remove the subgraph first or change FORCE_DEPLOY=true"
-    if [ "$FORCE_DEPLOY" != "true" ]; then
-        exit 0
+EXISTS=""
+echo "Checking for existing deployment of $SUBGRAPH_NAME (up to ~3 minutes)..."
+for i in $(seq 1 36); do
+    RESP=$(curl -sf -X POST -H "Content-Type: application/json" -d "$EXISTS_QUERY" "$STATUS_URL" 2>/dev/null)
+    # If the named subgraph exists, the response carries its deployment hash.
+    if echo "$RESP" | grep -q '"subgraph":"Qm'; then
+        BLOCK=$(echo "$RESP" | grep -oE '"number":"[0-9]+"' | head -1 | grep -oE '[0-9]+')
+        EXISTS=1
+        echo "Subgraph already deployed${BLOCK:+ (latest block $BLOCK)}. Skipping deploy."
+        break
     fi
-    echo "FORCE_DEPLOY=true set, proceeding with deploy..."
+    sleep 5
+done
+
+if [ -n "$EXISTS" ] && [ "$FORCE_DEPLOY" != "true" ]; then
+    exit 0
+fi
+if [ -n "$EXISTS" ]; then
+    echo "FORCE_DEPLOY=true set, proceeding with deploy (will replace existing)..."
 fi
 
 # Ensure node_modules exists

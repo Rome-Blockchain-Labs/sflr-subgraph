@@ -170,7 +170,7 @@ jobs:
                 - erpc
               volumes:
                 - ./config.toml:/etc/graph-node/config.toml:ro
-              command: ["graph-node", "--config", "/etc/graph-node/config.toml", "--ipfs", "http://ipfs-sflr:5001"]
+              command: ["graph-node", "--config", "/etc/graph-node/config.toml", "--ipfs", "http://ipfs-sflr:5001", "--node-id", "graph-node-sflr"]
               networks:
                 - sflr_network
 
@@ -503,7 +503,7 @@ jobs:
                 - erpc
               volumes:
                 - ./config.toml:/etc/graph-node/config.toml:ro
-              command: ["graph-node", "--config", "/etc/graph-node/config.toml", "--ipfs", "http://ipfs-sflr:5001"]
+              command: ["graph-node", "--config", "/etc/graph-node/config.toml", "--ipfs", "http://ipfs-sflr:5001", "--node-id", "graph-node-sflr"]
               networks:
                 - sflr_network
 
